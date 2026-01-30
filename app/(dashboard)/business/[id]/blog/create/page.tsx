@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, Loader2, Save, X, Image as ImageIcon } from "lucide-react";
+import { ArrowLeft, Loader2, Save, X, Image as ImageIcon, ChevronLeft, Globe, MoreVertical } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +21,8 @@ import { cn } from "@/lib/utils";
 import { useCreateBlog, useUploadBlogFeaturedImage } from "@/hooks/useBlog";
 import { useBusinessById } from "@/hooks/useBusiness";
 import type { BlogStatus } from "@/types/blog.types";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 
 export default function CreateBlogPostPage() {
   const params = useParams();
@@ -49,7 +51,9 @@ export default function CreateBlogPostPage() {
 
   const isSubmitting = createBlog.isPending || uploadFeaturedImage.isPending;
 
-  // Auto-generate slug from title
+  // Auto-generate slug from title if slug hasn't been manually touched
+  const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
+
   const generateSlug = (title: string) => {
     return title
       .toLowerCase()
@@ -59,15 +63,25 @@ export default function CreateBlogPostPage() {
       .trim();
   };
 
-  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const title = e.target.value;
-    setFormData((prev) => ({
-      ...prev,
-      title,
-      slug: generateSlug(title),
-    }));
+    setFormData((prev) => {
+      const updates = { ...prev, title };
+      if (!slugManuallyEdited) {
+        updates.slug = generateSlug(title);
+      }
+      return updates;
+    });
     if (errors.title) {
       setErrors((prev) => ({ ...prev, title: "" }));
+    }
+  };
+
+  const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSlugManuallyEdited(true);
+    setFormData((prev) => ({ ...prev, slug: e.target.value }));
+    if (errors.slug) {
+      setErrors((prev) => ({ ...prev, slug: "" }));
     }
   };
 
@@ -85,11 +99,9 @@ export default function CreateBlogPostPage() {
     setFormData((prev) => ({ ...prev, status: value }));
   };
 
-  // Handle file selection
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Validate file type
       const allowedTypes = [
         "image/jpeg",
         "image/png",
@@ -105,7 +117,6 @@ export default function CreateBlogPostPage() {
         return;
       }
 
-      // Validate file size (5MB max)
       if (file.size > 5 * 1024 * 1024) {
         setErrors((prev) => ({
           ...prev,
@@ -117,13 +128,11 @@ export default function CreateBlogPostPage() {
       setFeaturedImageFile(file);
       setErrors((prev) => ({ ...prev, featuredImage: "" }));
 
-      // Create preview URL
       const previewUrl = URL.createObjectURL(file);
       setFeaturedImagePreview(previewUrl);
     }
   };
 
-  // Remove selected image
   const handleRemoveImage = () => {
     setFeaturedImageFile(null);
     if (featuredImagePreview) {
@@ -162,7 +171,6 @@ export default function CreateBlogPostPage() {
     }
 
     try {
-      // Step 1: Create the blog
       const newBlog = await createBlog.mutateAsync({
         title: formData.title,
         slug: formData.slug,
@@ -173,7 +181,6 @@ export default function CreateBlogPostPage() {
         status: formData.status,
       });
 
-      // Step 2: Upload featured image if selected
       if (featuredImageFile && newBlog._id) {
         await uploadFeaturedImage.mutateAsync({
           id: newBlog._id,
@@ -181,229 +188,245 @@ export default function CreateBlogPostPage() {
         });
       }
 
-      // Navigate back to blog list
       router.push(`/business/${businessId}/blog`);
     } catch (error) {
-      // Error handling is done in the hooks
       console.error("Failed to create blog:", error);
     }
   };
 
+  // Auto-resize textarea for title
+  const titleTextareaRef = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => {
+    if (titleTextareaRef.current) {
+      titleTextareaRef.current.style.height = 'auto';
+      titleTextareaRef.current.style.height = titleTextareaRef.current.scrollHeight + 'px';
+    }
+  }, [formData.title]);
+
+
   return (
-    <div className="h-[calc(100vh-80px)] flex flex-col">
-      {/* Header with Actions - Fixed */}
-      <div className="flex items-center justify-between gap-4 pb-4 border-b mb-4 flex-shrink-0">
-        <div className="flex items-center gap-4">
-          <div>
-            <h1 className="text-2xl font-bold">Create New Post</h1>
-            <p className="text-sm text-muted-foreground">
-              Create a new blog post for {business?.name || "this business"}
-            </p>
+    <div className="flex flex-col min-h-screen bg-background">
+      {/* Header */}
+      <header className="sticky top-14 z-40 bg-background/80 backdrop-blur-md border-b">
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Link
+              href={`/business/${businessId}/blog`}
+              className="text-muted-foreground hover:text-foreground transition-colors"
+              title="Back to Posts"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Link>
+            <div className="h-4 w-[1px] bg-border" />
+
+            <Badge variant={formData.status === 'published' ? 'default' : 'secondary'} className="rounded-sm font-normal text-xs uppercase tracking-wider">
+              {formData.status}
+            </Badge>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-muted-foreground hover:text-foreground"
+              onClick={() => router.push(`/business/${businessId}/blog`)}
+              disabled={isSubmitting}
+            >
+              Discard
+            </Button>
+            <div className="h-4 w-[1px] bg-border mx-1" />
+            <div className="flex items-center bg-muted/50 rounded-md p-1 border border-border/50">
+              <Select
+                value={formData.status}
+                onValueChange={handleStatusChange}
+                disabled={isSubmitting}
+              >
+                <SelectTrigger className="h-7 w-[110px] border-none shadow-none bg-transparent focus:ring-0 text-xs uppercase font-medium text-muted-foreground">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="draft">Draft</SelectItem>
+                  <SelectItem value="published">Published</SelectItem>
+                </SelectContent>
+              </Select>
+              <div className="w-[1px] h-4 bg-border/50 mx-1" />
+              <Button
+                size="sm"
+                className="h-7 px-3 shadow-none text-xs font-semibold"
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                ) : (
+                  <Save className="h-3 w-3 mr-1" />
+                )}
+                {formData.status === 'published' ? 'Publish' : 'Save'}
+              </Button>
+            </div>
           </div>
         </div>
+      </header>
 
-        {/* Publish Actions - Top Right */}
-        <div className="flex items-center gap-2">
-          <Select
-            value={formData.status}
-            onValueChange={handleStatusChange}
-            disabled={isSubmitting}
-          >
-            <SelectTrigger className="w-[130px]">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="draft">Draft</SelectItem>
-              <SelectItem value="published">Published</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button
-            type="submit"
-            disabled={isSubmitting}
-            className="gap-2"
-            onClick={handleSubmit}
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                {createBlog.isPending ? "Creating..." : "Uploading Image..."}
-              </>
-            ) : (
-              <>
-                <Save className="h-4 w-4" />
-                {formData.status === "published" ? "Publish" : "Save Draft"}
-              </>
-            )}
-          </Button>
-        </div>
-      </div>
+      {/* Main Content */}
+      <div className="flex-1 w-full max-w-[1600px] mx-auto p-4 sm:px-6 py-8">
+        <form onSubmit={handleSubmit} className="grid grid-cols-12 gap-8 lg:gap-12">
 
-      {/* Form - Scrollable Content */}
-      <form onSubmit={handleSubmit} className="flex-1 ">
-        <div className="mx-auto max-w-6xl pb-10">
-          {/* Two Column Layout */}
-          <div className="grid gap-6 lg:grid-cols-4">
-            {/* Main Content - Left Column */}
-            <div className="lg:col-span-3 space-y-4">
-              {/* Title */}
-              <div className="space-y-2">
-                <Label htmlFor="title">Title *</Label>
-                <Input
-                  id="title"
-                  name="title"
-                  placeholder="Enter post title"
-                  value={formData.title}
-                  onChange={handleTitleChange}
-                  disabled={isSubmitting}
-                  className={cn(
-                    "text-lg",
-                    errors.title ? "border-destructive" : "",
-                  )}
-                />
-                {errors.title && (
-                  <p className="text-sm text-destructive">{errors.title}</p>
-                )}
-              </div>
+          {/* Left Column: Editor */}
+          <div className="col-span-12 lg:col-span-8 xl:col-span-9 space-y-6">
+            <div className="space-y-4">
+              {/* Title Input */}
+              <textarea
+                ref={titleTextareaRef}
+                name="title"
+                placeholder="Post Title"
+                value={formData.title}
+                onChange={handleTitleChange}
+                className="w-full resize-none overflow-hidden bg-transparent text-4xl lg:text-5xl font-bold tracking-tight placeholder:text-muted-foreground/40 focus:outline-none border-none p-0"
+                rows={1}
+                disabled={isSubmitting}
+              />
+              {errors.title && (
+                <p className="text-sm text-destructive font-medium">{errors.title}</p>
+              )}
 
-              {/* Slug */}
-              <div className="space-y-2">
-                <Label htmlFor="slug">Slug *</Label>
-                <Input
-                  id="slug"
-                  name="slug"
-                  placeholder="post-url-slug"
-                  value={formData.slug}
-                  onChange={handleChange}
-                  disabled={isSubmitting}
-                  className={errors.slug ? "border-destructive" : ""}
-                />
-                {errors.slug && (
-                  <p className="text-sm text-destructive">{errors.slug}</p>
-                )}
-              </div>
-
-              {/* Content Editor */}
-              <div className="space-y-2">
-                <Label htmlFor="content">Content *</Label>
-                <RichTextEditor
-                  content={formData.content}
-                  onChange={(content) => {
-                    setFormData((prev) => ({ ...prev, content }));
-                    if (errors.content) {
-                      setErrors((prev) => ({ ...prev, content: "" }));
-                    }
-                  }}
-                  placeholder="Write your blog post content..."
-                  disabled={isSubmitting}
-                  className={errors.content ? "border-destructive" : ""}
-                />
-                {errors.content && (
-                  <p className="text-sm text-destructive">{errors.content}</p>
-                )}
-              </div>
-
-              {/* Excerpt */}
-              <div className="space-y-2">
-                <Label htmlFor="excerpt">Excerpt</Label>
-                <Textarea
-                  id="excerpt"
-                  name="excerpt"
-                  placeholder="Short summary of the post (optional)"
-                  value={formData.excerpt}
-                  onChange={handleChange}
-                  disabled={isSubmitting}
-                  className="min-h-[80px]"
-                />
-                <p className="text-xs text-muted-foreground">
-                  A brief description shown in post listings
-                </p>
-              </div>
+              {/* Slug Preview */}
+              {formData.slug && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground/60 font-mono">
+                  <Globe className="h-3 w-3" />
+                  <span>/{formData.slug}</span>
+                </div>
+              )}
             </div>
 
-            {/* Sidebar - Right Column */}
-            <div className="space-y-4">
-              {/* Category */}
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base">Category</CardTitle>
-                </CardHeader>
-                <CardContent>
+            <div className="min-h-[500px]">
+              <RichTextEditor
+                content={formData.content}
+                onChange={(content) => {
+                  setFormData((prev) => ({ ...prev, content }));
+                  if (errors.content) {
+                    setErrors((prev) => ({ ...prev, content: "" }));
+                  }
+                }}
+                placeholder="Tell your story..."
+                disabled={isSubmitting}
+                className={cn(
+                  "min-h-[500px] border-none focus:ring-0 px-0",
+                  errors.content ? "border-destructive/50" : ""
+                )}
+              />
+              {errors.content && (
+                <p className="text-sm text-destructive mt-2">{errors.content}</p>
+              )}
+            </div>
+          </div>
+
+
+          {/* Right Column: Settings */}
+          <div className="col-span-12 lg:col-span-4 xl:col-span-3">
+            <div className="sticky top-24 space-y-8">
+
+              {/* Section: Featured Image */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs font-semibold uppercase text-muted-foreground tracking-wider">Featured Image</Label>
+                </div>
+
+                <div
+                  className={cn(
+                    "group relative flex aspect-video w-full cursor-pointer flex-col items-center justify-center overflow-hidden rounded-lg border border-dashed border-border bg-muted/20 hover:bg-muted/40 transition-all",
+                    featuredImagePreview ? "border-solid border-border/50" : ""
+                  )}
+                  onClick={() => !isSubmitting && fileInputRef.current?.click()}
+                >
+                  {featuredImagePreview ? (
+                    <>
+                      <img
+                        src={featuredImagePreview}
+                        alt="Preview"
+                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <span className="text-white text-xs font-medium">Change Image</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRemoveImage();
+                        }}
+                        className="absolute right-2 top-2 h-6 w-6 rounded-full bg-background/80 text-foreground backdrop-blur-sm flex items-center justify-center hover:bg-destructive hover:text-destructive-foreground transition-colors"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </>
+                  ) : (
+                    <div className="flex flex-col items-center gap-2 text-muted-foreground/60 group-hover:text-muted-foreground transition-colors">
+                      <ImageIcon className="h-8 w-8" />
+                      <span className="text-xs">Add Cover</span>
+                    </div>
+                  )}
+                </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
+                {errors.featuredImage && (
+                  <p className="text-[10px] text-destructive font-medium">{errors.featuredImage}</p>
+                )}
+              </div>
+
+              <Separator />
+
+              {/* Section: Post Settings */}
+              <div className="space-y-6">
+                <Label className="text-xs font-semibold uppercase text-muted-foreground tracking-wider">Post Settings</Label>
+
+                <div className="space-y-3">
+                  <Label htmlFor="slug" className="text-xs">URL Slug</Label>
+                  <Input
+                    id="slug"
+                    value={formData.slug}
+                    onChange={handleSlugChange}
+                    className="h-8 font-mono text-xs"
+                    placeholder="url-slug"
+                  />
+                  {errors.slug && <p className="text-[10px] text-destructive">{errors.slug}</p>}
+                </div>
+
+                <div className="space-y-3">
+                  <Label htmlFor="excerpt" className="text-xs">Excerpt</Label>
+                  <Textarea
+                    id="excerpt"
+                    name="excerpt"
+                    value={formData.excerpt}
+                    onChange={handleChange}
+                    className="min-h-[100px] text-sm resize-none"
+                    placeholder="Brief description for social cards..."
+                  />
+                </div>
+
+                <div className="space-y-3">
+                  <Label htmlFor="category" className="text-xs">Category</Label>
                   <Input
                     id="category"
                     name="category"
-                    placeholder="e.g., News, Tutorial"
                     value={formData.category}
                     onChange={handleChange}
-                    disabled={isSubmitting}
+                    placeholder="e.g. Technology"
+                    className="h-8 text-sm"
                   />
-                </CardContent>
-              </Card>
+                </div>
+              </div>
 
-              {/* Featured Image */}
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base">Featured Image</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {/* Image Preview */}
-                    <div
-                      className="relative flex h-40 w-full items-center justify-center overflow-hidden rounded-lg border-2 border-dashed border-muted-foreground/25 bg-muted/50 transition-colors hover:border-muted-foreground/50 cursor-pointer"
-                      onClick={() =>
-                        !isSubmitting && fileInputRef.current?.click()
-                      }
-                    >
-                      {featuredImagePreview ? (
-                        <>
-                          <img
-                            src={featuredImagePreview}
-                            alt="Featured image preview"
-                            className="h-full w-full object-cover"
-                          />
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleRemoveImage();
-                            }}
-                            disabled={isSubmitting}
-                            className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90"
-                          >
-                            <X className="h-3 w-3" />
-                          </button>
-                        </>
-                      ) : (
-                        <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                          <ImageIcon className="h-8 w-8" />
-                          <span className="text-xs">Click to upload</span>
-                        </div>
-                      )}
-                    </div>
-
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/jpeg,image/png,image/webp,image/gif"
-                      onChange={handleFileSelect}
-                      className="hidden"
-                    />
-
-                    {errors.featuredImage && (
-                      <p className="text-sm text-destructive">
-                        {errors.featuredImage}
-                      </p>
-                    )}
-
-                    <p className="text-xs text-muted-foreground">
-                      JPEG, PNG, WebP or GIF. Max 5MB.
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
             </div>
           </div>
-        </div>
-      </form>
+
+        </form>
+      </div>
     </div>
   );
 }

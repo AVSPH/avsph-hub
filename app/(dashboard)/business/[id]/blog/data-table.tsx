@@ -208,7 +208,7 @@ export function BlogDataTable<TData, TValue>({
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
   const [localSearch, setLocalSearch] = React.useState(searchValue);
-  const [viewMode, setViewMode] = React.useState<ViewMode>("table");
+  const [viewMode, setViewMode] = React.useState<ViewMode>("grid");
 
   // Debounced search
   React.useEffect(() => {
