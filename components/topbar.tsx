@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Building2, LogOut, Settings, User, Shield } from "lucide-react";
+import { Building2, LogOut, Settings, User, Slash, Search, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -19,10 +19,15 @@ import { useLogout } from "@/hooks/useAuth";
 import { useAdminStore } from "@/store/admin.store";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
 
 // Base navigation items for all admins
 const baseNavigation = [
   { name: "Overview", href: "/overview" },
+  { name: "Businesses", href: "/business" },
+  { name: "Staff", href: "/staff" },
+  { name: "Activity", href: "/activity" },
+  { name: "Domains", href: "/domains" },
 ];
 
 // Super-admin only navigation items
@@ -41,107 +46,137 @@ export function Topbar() {
     : baseNavigation;
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      {/* Top Row: Logo, Title & Actions */}
-      <div className="flex h-12 items-center justify-between px-4 md:px-6">
-        {/* Left: Logo & Title */}
-        <div className="flex items-center gap-3">
-          <Link
-            href="/overview"
-            className="flex items-center gap-2 font-semibold"
-          >
-            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary text-primary-foreground">
-              <Building2 className="h-4 w-4" />
-            </div>
-          </Link>
+    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/60">
+      <div className="flex flex-col w-full max-w-[2000px] mx-auto px-4 sm:px-6 md:px-8">
+        {/* Top Row: Global Context, Search, & Actions */}
+        <div className="flex h-16 items-center justify-between gap-4">
+          {/* Left: Branding & Context */}
+          <div className="flex items-center gap-3">
+            <Link href="/overview" className="flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-foreground text-background">
+                <Building2 className="h-4 w-4" />
+              </div>
+              <span className="font-semibold text-sm tracking-tight hidden sm:inline-block">
+                Admin Console
+              </span>
+            </Link>
 
-          <span className="text-lg font-medium text-foreground">Overview</span>
-        </div>
+            <Slash className="h-4 w-4 text-muted-foreground/20 rotate-[15deg] hidden sm:block" />
 
-        {/* Right: Actions */}
-        <div className="flex items-center gap-2">
-          <ModeToggle />
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="rounded-full h-8 w-8">
-                <Avatar className="h-7 w-7">
-                  <AvatarFallback className="text-xs">
+            <div className="flex items-center gap-2 hidden sm:flex">
+              <div className="flex items-center gap-2 px-2 py-1 rounded-sm hover:bg-muted/50 transition-colors cursor-pointer">
+                <Avatar className="h-5 w-5">
+                  <AvatarFallback className="text-[10px] bg-indigo-500 text-white">
                     {getInitials()}
                   </AvatarFallback>
                 </Avatar>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>
-                <div className="flex flex-col space-y-1">
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm font-medium">{getFullName()}</p>
-                    {isSuperAdmin() && (
-                      <Badge
-                        variant="secondary"
-                        className="text-xs px-1.5 py-0"
-                      >
-                        <Shield className="h-3 w-3 mr-1" />
-                        Super
-                      </Badge>
-                    )}
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    {admin?.email}
-                  </p>
-                </div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <User className="mr-2 h-4 w-4" />
-                Profile
-              </DropdownMenuItem>
-              {isSuperAdmin() && (
-                <Link href="/settings">
-                  <DropdownMenuItem>
-                    <Settings className="mr-2 h-4 w-4" />
-                    Settings
-                  </DropdownMenuItem>
+                <span className="text-sm font-medium">{getFullName()}</span>
+                {isSuperAdmin() && (
+                  <Badge variant="secondary" className="h-4 px-1 text-[10px] bg-muted border-border text-muted-foreground">
+                    PRO
+                  </Badge>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Center: Search (Optional, Vercel-like) */}
+          <div className="hidden md:flex flex-1 max-w-md mx-6">
+            <div className="relative w-full">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Search..."
+                className="w-full h-9 pl-9 bg-muted/40 border-border/50 focus-visible:bg-background transition-colors"
+              />
+              <div className="absolute right-2.5 top-2.5 flex gap-1">
+                <kbd className="pointer-events-none inline-flex h-4 items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
+                  <span className="text-xs">⌘</span>K
+                </kbd>
+              </div>
+            </div>
+          </div>
+
+          {/* Right: Actions */}
+          <div className="flex items-center gap-2 sm:gap-4">
+            <Button variant="ghost" size="sm" className="hidden lg:flex text-muted-foreground hover:text-foreground text-xs gap-1">
+              Feedback
+            </Button>
+            <Button variant="ghost" size="sm" className="hidden lg:flex text-muted-foreground hover:text-foreground text-xs gap-1">
+              Changelog
+            </Button>
+
+            <div className="h-4 w-[1px] bg-border hidden sm:block" />
+
+            <ModeToggle />
+
+            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground relative">
+              <Bell className="h-4 w-4" />
+              {/* Notification indicator */}
+              <span className="absolute top-2 right-2.5 h-1.5 w-1.5 rounded-full bg-red-500 border border-background" />
+            </Button>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="rounded-full h-8 w-8 ml-1">
+                  <Avatar className="h-8 w-8 border border-border/50">
+                    <AvatarFallback className="text-xs">
+                      {getInitials()}
+                    </AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56 mt-2">
+                <DropdownMenuLabel>Account</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                  <User className="mr-2 h-4 w-4" />
+                  Profile
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Settings className="mr-2 h-4 w-4" />
+                  Settings
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={logout} className="text-destructive focus:text-destructive">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Log out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+
+        {/* Bottom Row: Navigation Tabs */}
+        <div className="flex items-center -ml-2 overflow-x-auto scrollbar-none pb-0">
+          <nav className="flex space-x-1">
+            {navigation.map((item) => {
+              const isActive =
+                item.href === "/overview"
+                  ? pathname === "/overview"
+                  : pathname.startsWith(item.href);
+
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    "relative px-3 py-2.5 text-sm transition-all duration-200 rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                    isActive
+                      ? "text-foreground font-medium"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
+                  )}
+                >
+                  {item.name}
+                  {isActive && (
+                    <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-foreground shadow-[0_0_12px_rgba(0,0,0,0.5)] dark:shadow-[0_0_12px_rgba(255,255,255,0.5)]" />
+                  )}
                 </Link>
-              )}
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                className="text-destructive focus:text-destructive"
-                onClick={logout}
-              >
-                <LogOut className="mr-2 h-4 w-4" />
-                Log out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+              );
+            })}
+          </nav>
         </div>
       </div>
-
-      {/* Bottom Row: Navigation Tabs */}
-      <nav className="flex items-center gap-0 px-4 md:px-6 overflow-x-auto">
-        {navigation.map((item) => {
-          const isActive =
-            pathname === item.href || pathname.startsWith(item.href + "/");
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "relative px-3 py-2 text-sm transition-colors hover:text-foreground",
-                isActive
-                  ? "text-foreground"
-                  : "text-muted-foreground"
-              )}
-            >
-              {item.name}
-              {isActive && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-foreground" />
-              )}
-            </Link>
-          );
-        })}
-      </nav>
     </header>
   );
 }

@@ -7,7 +7,6 @@ import {
   List,
   Plus,
   Search,
-  Loader2,
   Building2,
   ShieldAlert,
 } from "lucide-react";
@@ -17,14 +16,14 @@ import { BusinessCard } from "@/components/business-card";
 import { BusinessListItem } from "@/components/business-list-item";
 import { useBusinesses } from "@/hooks/useBusiness";
 import { useAdminStore } from "@/store/admin.store";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Separator } from "@/components/ui/separator";
 
 export default function OverviewPage() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [layout, setLayout] = useState<"grid" | "list">("grid");
 
-  const { data: businesses = [], isLoading, isError, error } = useBusinesses();
+  const { data: businesses = [], isLoading } = useBusinesses();
   const { isSuperAdmin } = useAdminStore();
   const canCreateBusiness = isSuperAdmin();
 
@@ -37,7 +36,6 @@ export default function OverviewPage() {
         false),
   );
 
-  // Check if regular admin has no businesses assigned
   const isAdminWithNoAccess = !canCreateBusiness && businesses.length === 0;
 
   const handleCreateBusiness = () => {
@@ -45,111 +43,128 @@ export default function OverviewPage() {
   };
 
   return (
-    <div className="space-y-6 bg-background">
-      {/* Show special empty state for admins with no business access */}
+    <div className="space-y-8">
+      {/* Header Section */}
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Overview</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Manage and monitor your business projects.
+          </p>
+        </div>
+
+        {canCreateBusiness && (
+          <Button onClick={handleCreateBusiness} className="shrink-0 gap-2 shadow-sm">
+            <Plus className="h-4 w-4" />
+            New Project
+          </Button>
+        )}
+      </div>
+
+      <Separator className="my-4" />
+
+      {/* Access Denied State */}
       {isAdminWithNoAccess ? (
-        <div className="flex min-h-[400px] flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
+        <div className="flex min-h-[400px] flex-col items-center justify-center rounded-xl border border-dashed bg-muted/20 p-8 text-center animate-in fade-in-50">
           <div className="mx-auto flex max-w-[480px] flex-col items-center justify-center text-center">
-            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/30">
-              <ShieldAlert className="h-10 w-10 text-amber-600 dark:text-amber-500" />
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-amber-100/50 dark:bg-amber-900/20 mb-6">
+              <ShieldAlert className="h-8 w-8 text-amber-600 dark:text-amber-500" />
             </div>
-            <h3 className="mt-4 text-xl font-semibold">No Business Access</h3>
-            <p className="mb-4 mt-2 text-base text-muted-foreground">
+            <h3 className="text-xl font-semibold text-foreground">No Business Access</h3>
+            <p className="mb-6 mt-2 text-muted-foreground leading-relaxed">
               You haven't been assigned to any businesses yet. Please contact
-              your Super Admin to request access to one or more businesses.
+              your Super Admin to request access.
             </p>
-            <div className="rounded-lg bg-muted/50 p-4 text-sm text-muted-foreground">
-              <p className="font-medium text-foreground">Need access?</p>
-              <p className="mt-1">
-                Ask your Super Admin to add you to a business from the Admin
-                Management panel.
+            <div className="w-full rounded-lg bg-card border shadow-sm p-4 text-sm">
+              <p className="font-medium text-foreground">Next Steps</p>
+              <p className="mt-1 text-muted-foreground">
+                Ask your Super Admin to add you via the Admin Management panel.
               </p>
             </div>
           </div>
         </div>
       ) : (
-        <>
-          {/* Search, Layout Toggle & Create Button - Single Row */}
-          <div className="flex items-center gap-3">
-            {/* Search Input */}
-            <div className="relative flex-1">
+        <div className="space-y-6">
+          {/* Toolbar */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-between items-center">
+            <div className="relative w-full sm:max-w-sm">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                placeholder="Search Projects..."
+                placeholder="Search projects..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 bg-background"
+                className="pl-9 bg-background/50 focus:bg-background transition-all"
               />
             </div>
 
-            {/* Layout Toggle */}
-            <div className="flex items-center gap-1 rounded-lg border bg-muted/30 p-1">
-              <Button
-                variant={layout === "grid" ? "secondary" : "ghost"}
-                size="sm"
-                className="h-8 w-8 p-0"
-                onClick={() => setLayout("grid")}
-              >
-                <Grid3X3 className="h-4 w-4" />
-                <span className="sr-only">Grid view</span>
-              </Button>
-              <Button
-                variant={layout === "list" ? "secondary" : "ghost"}
-                size="sm"
-                className="h-8 w-8 p-0"
-                onClick={() => setLayout("list")}
-              >
-                <List className="h-4 w-4" />
-                <span className="sr-only">List view</span>
-              </Button>
+            <div className="flex items-center gap-2 self-end sm:self-auto">
+              <div className="flex items-center gap-1 p-1 bg-muted/40 rounded-lg border border-border/50">
+                <Button
+                  variant={layout === "grid" ? "secondary" : "ghost"}
+                  size="sm"
+                  className="h-7 w-7 p-0 shadow-none data-[state=active]:bg-background"
+                  onClick={() => setLayout("grid")}
+                >
+                  <Grid3X3 className="h-4 w-4" />
+                  <span className="sr-only">Grid view</span>
+                </Button>
+                <Button
+                  variant={layout === "list" ? "secondary" : "ghost"}
+                  size="sm"
+                  className="h-7 w-7 p-0 shadow-none"
+                  onClick={() => setLayout("list")}
+                >
+                  <List className="h-4 w-4" />
+                  <span className="sr-only">List view</span>
+                </Button>
+              </div>
             </div>
-
-            {/* Add New Button */}
-            {canCreateBusiness && (
-              <Button
-                className="gap-2"
-                onClick={handleCreateBusiness}
-              >
-                Add New...
-              </Button>
-            )}
           </div>
 
-          {/* Business Grid/List */}
-          {filteredBusinesses.length > 0 ? (
+          {/* Content Area */}
+          {isLoading ? (
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="h-[200px] rounded-xl border bg-card/50 px-6 py-6 space-y-4 animate-pulse">
+                  <div className="h-10 w-10 rounded-full bg-muted" />
+                  <div className="space-y-2">
+                    <div className="h-4 w-3/4 bg-muted rounded" />
+                    <div className="h-3 w-1/2 bg-muted rounded" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : filteredBusinesses.length > 0 ? (
             layout === "grid" ? (
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 animate-in fade-in-50 duration-500">
                 {filteredBusinesses.map((business) => (
                   <BusinessCard key={business._id} business={business} />
                 ))}
               </div>
             ) : (
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-3 animate-in fade-in-50 duration-500">
                 {filteredBusinesses.map((business) => (
                   <BusinessListItem key={business._id} business={business} />
                 ))}
               </div>
             )
           ) : (
-            /* Empty State for Super Admin */
-            <div className="flex min-h-[400px] flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
+            /* Empty State */
+            <div className="flex min-h-[400px] flex-col items-center justify-center rounded-xl border border-dashed bg-muted/20 p-8 text-center animate-in fade-in-50">
               <div className="mx-auto flex max-w-[420px] flex-col items-center justify-center text-center">
-                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-muted">
-                  <Building2 className="h-10 w-10 text-muted-foreground" />
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted mb-6">
+                  <Building2 className="h-8 w-8 text-muted-foreground" />
                 </div>
-                <h3 className="mt-4 text-xl font-semibold">
-                  {searchQuery ? "No businesses found" : "No businesses yet"}
+                <h3 className="text-xl font-semibold text-foreground">
+                  {searchQuery ? "No matching projects" : "No projects created"}
                 </h3>
-                <p className="mb-4 mt-2 text-base text-muted-foreground">
+                <p className="mb-6 mt-2 text-muted-foreground">
                   {searchQuery
                     ? "Try adjusting your search terms."
-                    : "Get started by creating your first business. You can add blog posts and manage content for each business."}
+                    : "Get started by creating your first business project."}
                 </p>
                 {!searchQuery && canCreateBusiness && (
-                  <Button
-                    className="gap-2"
-                    onClick={handleCreateBusiness}
-                  >
+                  <Button onClick={handleCreateBusiness} className="gap-2">
                     <Plus className="h-4 w-4" />
                     Create Business
                   </Button>
@@ -157,7 +172,7 @@ export default function OverviewPage() {
               </div>
             </div>
           )}
-        </>
+        </div>
       )}
     </div>
   );
