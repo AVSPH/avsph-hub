@@ -194,11 +194,6 @@ export default function CreateBlogPostPage() {
       {/* Header with Actions - Fixed */}
       <div className="flex items-center justify-between gap-4 pb-4 border-b mb-4 flex-shrink-0">
         <div className="flex items-center gap-4">
-          <Link href={`/business/${businessId}/blog`}>
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-          </Link>
           <div>
             <h1 className="text-2xl font-bold">Create New Post</h1>
             <p className="text-sm text-muted-foreground">
