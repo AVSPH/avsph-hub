@@ -10,6 +10,7 @@ import {
   Copy,
   ExternalLink,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -33,6 +34,63 @@ const statusConfig = {
     label: "Draft",
     className: "bg-zinc-500/10 text-zinc-500 border-zinc-500/20",
   },
+};
+
+// Actions cell component
+const ActionsCell = ({ blog }: { blog: Blog }) => {
+  const router = useRouter();
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="ghost"
+          className="h-8 w-8 p-0 data-[state=open]:bg-muted"
+        >
+          <span className="sr-only">Open menu</span>
+          <MoreHorizontal className="h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-[160px]">
+        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          onClick={() => {
+            navigator.clipboard.writeText(blog._id);
+            toast.success("Blog ID copied to clipboard");
+          }}
+        >
+          <Copy className="mr-2 h-4 w-4" />
+          Copy ID
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => {
+            router.push(`/business/${blog.businessId}/blog/${blog._id}`);
+          }}
+        >
+          <Eye className="mr-2 h-4 w-4" />
+          View Details
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <ExternalLink className="mr-2 h-4 w-4" />
+          View live
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => {
+            router.push(`/business/${blog.businessId}/blog/${blog._id}`);
+          }}
+        >
+          <Pencil className="mr-2 h-4 w-4" />
+          Edit
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem className="text-destructive focus:text-destructive">
+          <Trash2 className="mr-2 h-4 w-4" />
+          Delete
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
 };
 
 export const columns: ColumnDef<Blog>[] = [
@@ -74,14 +132,21 @@ export const columns: ColumnDef<Blog>[] = [
     ),
     cell: ({ row }) => {
       const blog = row.original;
-      return (
-        <div className="flex flex-col gap-1 max-w-[400px]">
-          <span className="font-medium text-sm truncate">{blog.title}</span>
-          <span className="text-xs text-muted-foreground truncate">
-            /{blog.slug}
-          </span>
-        </div>
-      );
+      const TitleCell = () => {
+        const router = useRouter();
+        return (
+          <div
+            className="flex flex-col gap-1 max-w-[400px] cursor-pointer hover:opacity-70 transition-opacity"
+            onClick={() => router.push(`/business/${blog.businessId}/blog/${blog._id}`)}
+          >
+            <span className="font-medium text-sm truncate">{blog.title}</span>
+            <span className="text-xs text-muted-foreground truncate">
+              /{blog.slug}
+            </span>
+          </div>
+        );
+      };
+      return <TitleCell />;
     },
   },
   {
@@ -169,50 +234,7 @@ export const columns: ColumnDef<Blog>[] = [
     id: "actions",
     cell: ({ row }) => {
       const blog = row.original;
-
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              className="h-8 w-8 p-0 data-[state=open]:bg-muted"
-            >
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-[160px]">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() => {
-                navigator.clipboard.writeText(blog._id);
-                toast.success("Blog ID copied to clipboard");
-              }}
-            >
-              <Copy className="mr-2 h-4 w-4" />
-              Copy ID
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Eye className="mr-2 h-4 w-4" />
-              Preview
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <ExternalLink className="mr-2 h-4 w-4" />
-              View live
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Pencil className="mr-2 h-4 w-4" />
-              Edit
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-destructive focus:text-destructive">
-              <Trash2 className="mr-2 h-4 w-4" />
-              Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
+      return <ActionsCell blog={blog} />;
     },
   },
 ];

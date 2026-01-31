@@ -14,6 +14,8 @@ export interface Blog {
   authorId: string;
   status: BlogStatus;
   publishedAt?: string;
+  viewCount?: number;
+  commentCount?: number;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
