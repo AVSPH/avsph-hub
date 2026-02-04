@@ -2,7 +2,16 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, Loader2, Save, X, Image as ImageIcon, ChevronLeft, Globe, MoreVertical } from "lucide-react";
+import {
+  ArrowLeft,
+  Loader2,
+  Save,
+  X,
+  Image as ImageIcon,
+  ChevronLeft,
+  Globe,
+  MoreVertical,
+} from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,7 +27,11 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { useCreateBlog, useUploadBlogFeaturedImage } from "@/hooks/useBlog";
+import {
+  useCreateBlog,
+  useUploadBlogFeaturedImage,
+  useUploadBlogContentImage,
+} from "@/hooks/useBlog";
 import { useBusinessById } from "@/hooks/useBusiness";
 import type { BlogStatus } from "@/types/blog.types";
 import { Badge } from "@/components/ui/badge";
@@ -33,6 +46,7 @@ export default function CreateBlogPostPage() {
   const { data: business } = useBusinessById(businessId);
   const createBlog = useCreateBlog();
   const uploadFeaturedImage = useUploadBlogFeaturedImage();
+  const uploadContentImage = useUploadBlogContentImage();
 
   const [formData, setFormData] = useState({
     title: "",
@@ -48,6 +62,7 @@ export default function CreateBlogPostPage() {
     string | null
   >(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [createdBlogId, setCreatedBlogId] = useState<string | null>(null);
 
   const isSubmitting = createBlog.isPending || uploadFeaturedImage.isPending;
 
@@ -63,7 +78,9 @@ export default function CreateBlogPostPage() {
       .trim();
   };
 
-  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleTitleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
     const title = e.target.value;
     setFormData((prev) => {
       const updates = { ...prev, title };
@@ -181,6 +198,9 @@ export default function CreateBlogPostPage() {
         status: formData.status,
       });
 
+      // Save the blog ID for image uploads
+      setCreatedBlogId(newBlog._id || null);
+
       if (featuredImageFile && newBlog._id) {
         await uploadFeaturedImage.mutateAsync({
           id: newBlog._id,
@@ -194,15 +214,67 @@ export default function CreateBlogPostPage() {
     }
   };
 
+  // Handle content image upload
+  const handleContentImageUpload = async (file: File): Promise<string> => {
+    // If blog hasn't been created yet, create it first as draft
+    let blogId = createdBlogId;
+
+    if (!blogId) {
+      try {
+        // Generate a unique slug for auto-created drafts
+        const draftSlug =
+          formData.slug ||
+          `draft-${Date.now()}-${Math.random().toString(36).substring(7)}`;
+
+        const newBlog = await createBlog.mutateAsync({
+          title: formData.title || "Untitled Draft",
+          slug: draftSlug,
+          content: formData.content || "<p>Draft content...</p>",
+          excerpt: formData.excerpt || undefined,
+          category: formData.category || undefined,
+          businessId,
+          status: "draft",
+        });
+        blogId = newBlog._id || null;
+        setCreatedBlogId(blogId);
+
+        // Update slug in form if it was auto-generated
+        if (!formData.slug) {
+          setFormData((prev) => ({ ...prev, slug: draftSlug }));
+        }
+      } catch (error) {
+        console.error("Failed to create blog for image upload:", error);
+        throw new Error("Failed to create blog for image upload");
+      }
+    }
+
+    if (!blogId) {
+      throw new Error("Blog ID is required for image upload");
+    }
+
+    try {
+      // Upload the image
+      const response = await uploadContentImage.mutateAsync({
+        id: blogId,
+        file,
+      });
+
+      return response.url;
+    } catch (error) {
+      console.error("Failed to upload content image:", error);
+      throw error;
+    }
+  };
+
   // Auto-resize textarea for title
   const titleTextareaRef = useRef<HTMLTextAreaElement>(null);
   useEffect(() => {
     if (titleTextareaRef.current) {
-      titleTextareaRef.current.style.height = 'auto';
-      titleTextareaRef.current.style.height = titleTextareaRef.current.scrollHeight + 'px';
+      titleTextareaRef.current.style.height = "auto";
+      titleTextareaRef.current.style.height =
+        titleTextareaRef.current.scrollHeight + "px";
     }
   }, [formData.title]);
-
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -219,7 +291,12 @@ export default function CreateBlogPostPage() {
             </Link>
             <div className="h-4 w-[1px] bg-border" />
 
-            <Badge variant={formData.status === 'published' ? 'default' : 'secondary'} className="rounded-sm font-normal text-xs uppercase tracking-wider">
+            <Badge
+              variant={
+                formData.status === "published" ? "default" : "secondary"
+              }
+              className="rounded-sm font-normal text-xs uppercase tracking-wider"
+            >
               {formData.status}
             </Badge>
           </div>
@@ -261,7 +338,7 @@ export default function CreateBlogPostPage() {
                 ) : (
                   <Save className="h-3 w-3 mr-1" />
                 )}
-                {formData.status === 'published' ? 'Publish' : 'Save'}
+                {formData.status === "published" ? "Publish" : "Save"}
               </Button>
             </div>
           </div>
@@ -270,8 +347,10 @@ export default function CreateBlogPostPage() {
 
       {/* Main Content */}
       <div className="flex-1 w-full max-w-[1600px] mx-auto p-4 sm:px-6 py-8">
-        <form onSubmit={handleSubmit} className="grid grid-cols-12 gap-8 lg:gap-12">
-
+        <form
+          onSubmit={handleSubmit}
+          className="grid grid-cols-12 gap-8 lg:gap-12"
+        >
           {/* Left Column: Editor */}
           <div className="col-span-12 lg:col-span-8 xl:col-span-9 space-y-6">
             <div className="space-y-4">
@@ -287,7 +366,9 @@ export default function CreateBlogPostPage() {
                 disabled={isSubmitting}
               />
               {errors.title && (
-                <p className="text-sm text-destructive font-medium">{errors.title}</p>
+                <p className="text-sm text-destructive font-medium">
+                  {errors.title}
+                </p>
               )}
 
               {/* Slug Preview */}
@@ -310,32 +391,36 @@ export default function CreateBlogPostPage() {
                 }}
                 placeholder="Tell your story..."
                 disabled={isSubmitting}
+                blogId={createdBlogId || undefined}
+                onImageUpload={handleContentImageUpload}
                 className={cn(
                   "min-h-[500px] border-none focus:ring-0 px-0",
-                  errors.content ? "border-destructive/50" : ""
+                  errors.content ? "border-destructive/50" : "",
                 )}
               />
               {errors.content && (
-                <p className="text-sm text-destructive mt-2">{errors.content}</p>
+                <p className="text-sm text-destructive mt-2">
+                  {errors.content}
+                </p>
               )}
             </div>
           </div>
 
-
           {/* Right Column: Settings */}
           <div className="col-span-12 lg:col-span-4 xl:col-span-3">
             <div className="sticky top-24 space-y-8">
-
               {/* Section: Featured Image */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <Label className="text-xs font-semibold uppercase text-muted-foreground tracking-wider">Featured Image</Label>
+                  <Label className="text-xs font-semibold uppercase text-muted-foreground tracking-wider">
+                    Featured Image
+                  </Label>
                 </div>
 
                 <div
                   className={cn(
                     "group relative flex aspect-video w-full cursor-pointer flex-col items-center justify-center overflow-hidden rounded-lg border border-dashed border-border bg-muted/20 hover:bg-muted/40 transition-all",
-                    featuredImagePreview ? "border-solid border-border/50" : ""
+                    featuredImagePreview ? "border-solid border-border/50" : "",
                   )}
                   onClick={() => !isSubmitting && fileInputRef.current?.click()}
                 >
@@ -347,7 +432,9 @@ export default function CreateBlogPostPage() {
                         className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                       />
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <span className="text-white text-xs font-medium">Change Image</span>
+                        <span className="text-white text-xs font-medium">
+                          Change Image
+                        </span>
                       </div>
                       <button
                         type="button"
@@ -375,7 +462,9 @@ export default function CreateBlogPostPage() {
                   className="hidden"
                 />
                 {errors.featuredImage && (
-                  <p className="text-[10px] text-destructive font-medium">{errors.featuredImage}</p>
+                  <p className="text-[10px] text-destructive font-medium">
+                    {errors.featuredImage}
+                  </p>
                 )}
               </div>
 
@@ -383,10 +472,14 @@ export default function CreateBlogPostPage() {
 
               {/* Section: Post Settings */}
               <div className="space-y-6">
-                <Label className="text-xs font-semibold uppercase text-muted-foreground tracking-wider">Post Settings</Label>
+                <Label className="text-xs font-semibold uppercase text-muted-foreground tracking-wider">
+                  Post Settings
+                </Label>
 
                 <div className="space-y-3">
-                  <Label htmlFor="slug" className="text-xs">URL Slug</Label>
+                  <Label htmlFor="slug" className="text-xs">
+                    URL Slug
+                  </Label>
                   <Input
                     id="slug"
                     value={formData.slug}
@@ -394,11 +487,17 @@ export default function CreateBlogPostPage() {
                     className="h-8 font-mono text-xs"
                     placeholder="url-slug"
                   />
-                  {errors.slug && <p className="text-[10px] text-destructive">{errors.slug}</p>}
+                  {errors.slug && (
+                    <p className="text-[10px] text-destructive">
+                      {errors.slug}
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-3">
-                  <Label htmlFor="excerpt" className="text-xs">Excerpt</Label>
+                  <Label htmlFor="excerpt" className="text-xs">
+                    Excerpt
+                  </Label>
                   <Textarea
                     id="excerpt"
                     name="excerpt"
@@ -410,7 +509,9 @@ export default function CreateBlogPostPage() {
                 </div>
 
                 <div className="space-y-3">
-                  <Label htmlFor="category" className="text-xs">Category</Label>
+                  <Label htmlFor="category" className="text-xs">
+                    Category
+                  </Label>
                   <Input
                     id="category"
                     name="category"
@@ -421,10 +522,8 @@ export default function CreateBlogPostPage() {
                   />
                 </div>
               </div>
-
             </div>
           </div>
-
         </form>
       </div>
     </div>

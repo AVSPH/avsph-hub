@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
+import Image from "@tiptap/extension-image";
 import Placeholder from "@tiptap/extension-placeholder";
 import {
   Bold,
@@ -21,6 +22,8 @@ import {
   Heading2,
   Heading3,
   Minus,
+  ImageIcon,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Toggle } from "@/components/ui/toggle";
@@ -43,6 +46,7 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { toast } from "sonner";
 
 interface RichTextEditorProps {
   content: string;
@@ -50,6 +54,8 @@ interface RichTextEditorProps {
   placeholder?: string;
   disabled?: boolean;
   className?: string;
+  blogId?: string; // Blog ID for image upload
+  onImageUpload?: (file: File) => Promise<string>; // Custom image upload handler
 }
 
 export function RichTextEditor({
@@ -58,9 +64,13 @@ export function RichTextEditor({
   placeholder = "Start writing...",
   disabled = false,
   className,
+  blogId,
+  onImageUpload,
 }: RichTextEditorProps) {
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
   const [linkUrl, setLinkUrl] = useState("");
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const editor = useEditor({
     extensions: [
@@ -73,6 +83,20 @@ export function RichTextEditor({
         openOnClick: false,
         HTMLAttributes: {
           class: "text-primary underline",
+        },
+      }),
+      Image.configure({
+        inline: false,
+        allowBase64: false,
+        resize: {
+          enabled: true,
+          directions: ["bottom-right", "bottom-left", "top-right", "top-left"],
+          minWidth: 100,
+          minHeight: 100,
+          alwaysPreserveAspectRatio: true,
+        },
+        HTMLAttributes: {
+          class: "rounded-lg cursor-pointer max-w-full h-auto",
         },
       }),
       Placeholder.configure({
@@ -89,6 +113,116 @@ export function RichTextEditor({
       attributes: {
         class:
           "prose prose-sm dark:prose-invert max-w-none focus:outline-none min-h-[580px] w-full px-4 py-3",
+        style: "img { max-width: 100%; height: auto; }",
+      },
+      handleDrop: (view, event, slice, moved) => {
+        if (
+          !moved &&
+          event.dataTransfer &&
+          event.dataTransfer.files &&
+          event.dataTransfer.files.length > 0
+        ) {
+          const files = Array.from(event.dataTransfer.files);
+          const imageFiles = files.filter((file) =>
+            file.type.startsWith("image/"),
+          );
+
+          if (imageFiles.length > 0) {
+            event.preventDefault();
+
+            // Validate and upload all images
+            const validImages = imageFiles.filter((file) => {
+              // Validate file type
+              const allowedTypes = [
+                "image/jpeg",
+                "image/png",
+                "image/webp",
+                "image/gif",
+              ];
+              if (!allowedTypes.includes(file.type)) {
+                toast.error(
+                  `${file.name}: Invalid file type. Please use JPEG, PNG, WebP, or GIF.`,
+                );
+                return false;
+              }
+
+              // Validate file size (5MB)
+              if (file.size > 5 * 1024 * 1024) {
+                toast.error(
+                  `${file.name}: File is too large. Maximum size is 5MB.`,
+                );
+                return false;
+              }
+
+              return true;
+            });
+
+            // Upload all valid images
+            if (onImageUpload && validImages.length > 0) {
+              validImages.forEach((file) => {
+                handleImageUpload(file);
+              });
+            }
+
+            return true;
+          }
+        }
+        return false;
+      },
+      handlePaste: (view, event, slice) => {
+        const items = event.clipboardData?.items;
+        if (items) {
+          const imageFiles: File[] = [];
+
+          // Collect all image files from clipboard
+          for (let i = 0; i < items.length; i++) {
+            if (items[i].type.startsWith("image/")) {
+              const file = items[i].getAsFile();
+              if (file) {
+                imageFiles.push(file);
+              }
+            }
+          }
+
+          if (imageFiles.length > 0) {
+            event.preventDefault();
+
+            // Validate and upload all images
+            const validImages = imageFiles.filter((file) => {
+              // Validate file type
+              const allowedTypes = [
+                "image/jpeg",
+                "image/png",
+                "image/webp",
+                "image/gif",
+              ];
+              if (!allowedTypes.includes(file.type)) {
+                toast.error(
+                  "Invalid file type. Please paste JPEG, PNG, WebP, or GIF images.",
+                );
+                return false;
+              }
+
+              // Validate file size (5MB)
+              if (file.size > 5 * 1024 * 1024) {
+                toast.error("File is too large. Maximum size is 5MB.");
+                return false;
+              }
+
+              return true;
+            });
+
+            // Upload all valid images
+            if (onImageUpload && validImages.length > 0) {
+              validImages.forEach((file) => {
+                handleImageUpload(file);
+              });
+            }
+
+            return true;
+          }
+        }
+        return false;
       },
     },
   });
@@ -121,6 +255,82 @@ export function RichTextEditor({
     setLinkDialogOpen(false);
     setLinkUrl("");
   }, [editor, linkUrl]);
+
+  const handleImageUpload = useCallback(
+    async (file: File) => {
+      if (!editor || !onImageUpload) return;
+
+      setIsUploadingImage(true);
+      const uploadToast = toast.loading("Uploading image...");
+
+      try {
+        // Call the custom image upload handler
+        const imageUrl = await onImageUpload(file);
+
+        // Insert the image into the editor
+        editor.chain().focus().setImage({ src: imageUrl }).run();
+
+        toast.success("Image uploaded!", { id: uploadToast });
+      } catch (error) {
+        console.error("Image upload failed:", error);
+        toast.error("Failed to upload image", { id: uploadToast });
+      } finally {
+        setIsUploadingImage(false);
+      }
+    },
+    [editor, onImageUpload],
+  );
+
+  const handleFileSelect = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const files = e.target.files;
+      if (files && files.length > 0) {
+        const fileArray = Array.from(files);
+
+        // Validate and upload all selected images
+        const validImages = fileArray.filter((file) => {
+          // Validate file type
+          const allowedTypes = [
+            "image/jpeg",
+            "image/png",
+            "image/webp",
+            "image/gif",
+          ];
+          if (!allowedTypes.includes(file.type)) {
+            toast.error(
+              `${file.name}: Invalid file type. Please select JPEG, PNG, WebP, or GIF images.`,
+            );
+            return false;
+          }
+
+          // Validate file size (5MB)
+          if (file.size > 5 * 1024 * 1024) {
+            toast.error(
+              `${file.name}: File is too large. Maximum size is 5MB.`,
+            );
+            return false;
+          }
+
+          return true;
+        });
+
+        // Upload all valid images
+        validImages.forEach((file) => {
+          handleImageUpload(file);
+        });
+      }
+
+      // Reset input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    },
+    [handleImageUpload],
+  );
+
+  const triggerImageUpload = useCallback(() => {
+    fileInputRef.current?.click();
+  }, []);
 
   if (!editor) {
     return null;
@@ -350,6 +560,24 @@ export function RichTextEditor({
               <Unlink className="h-4 w-4" />
             </ToolbarButton>
           )}
+
+          {/* Image Upload */}
+          {onImageUpload && blogId && (
+            <>
+              <Separator orientation="vertical" className="mx-1 h-6" />
+              <ToolbarButton
+                onClick={triggerImageUpload}
+                disabled={disabled || isUploadingImage}
+                tooltip={isUploadingImage ? "Uploading..." : "Insert Image"}
+              >
+                {isUploadingImage ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <ImageIcon className="h-4 w-4" />
+                )}
+              </ToolbarButton>
+            </>
+          )}
         </div>
 
         {/* Editor Content - Scrollable */}
@@ -357,6 +585,49 @@ export function RichTextEditor({
           <div className="w-full">
             <EditorContent editor={editor} className="w-full" />
           </div>
+          <style jsx global>{`
+            .ProseMirror img {
+              max-width: 100%;
+              height: auto;
+              cursor: pointer;
+              transition: all 0.2s;
+              display: block;
+            }
+            .ProseMirror img.ProseMirror-selectednode {
+              outline: 2px solid hsl(var(--primary));
+              outline-offset: 2px;
+            }
+            /* Resize handles */
+            .ProseMirror .resize-handle {
+              position: absolute;
+              width: 8px;
+              height: 8px;
+              background: hsl(var(--primary));
+              border: 1px solid hsl(var(--background));
+              border-radius: 50%;
+              z-index: 10;
+            }
+            .ProseMirror .resize-handle.bottom-right {
+              bottom: -4px;
+              right: -4px;
+              cursor: nwse-resize;
+            }
+            .ProseMirror .resize-handle.bottom-left {
+              bottom: -4px;
+              left: -4px;
+              cursor: nesw-resize;
+            }
+            .ProseMirror .resize-handle.top-right {
+              top: -4px;
+              right: -4px;
+              cursor: nesw-resize;
+            }
+            .ProseMirror .resize-handle.top-left {
+              top: -4px;
+              left: -4px;
+              cursor: nwse-resize;
+            }
+          `}</style>
         </ScrollArea>
 
         {/* Link Dialog */}
@@ -399,6 +670,16 @@ export function RichTextEditor({
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Hidden file input for image upload */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp,image/gif"
+          multiple
+          onChange={handleFileSelect}
+          className="hidden"
+        />
       </div>
     </TooltipProvider>
   );
