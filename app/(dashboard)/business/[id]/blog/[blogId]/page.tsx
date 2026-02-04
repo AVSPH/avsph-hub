@@ -6,19 +6,15 @@ import {
     ArrowLeft,
     Loader2,
     FileText,
-    Edit,
-    Trash2,
     MessageSquare,
-    Eye,
-    Calendar,
     User,
     CheckCircle2,
     XCircle,
+    Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -32,17 +28,9 @@ import {
 import { useBlogById } from "@/hooks/useBlog";
 import { useComments, useApproveComment, useDeleteComment } from "@/hooks/useComment";
 import type { CommentWithLead } from "@/types/comment.types";
-
-const statusConfig = {
-    published: {
-        label: "Published",
-        className: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
-    },
-    draft: {
-        label: "Draft",
-        className: "bg-zinc-500/10 text-zinc-500 border-zinc-500/20",
-    },
-};
+import { BlogEditor } from "@/components/blog/BlogEditor";
+import { CommentsTable } from "@/components/blog/CommentsTable";
+import { cn } from "@/lib/utils";
 
 export default function BlogDetailPage() {
     const params = useParams();
@@ -50,6 +38,7 @@ export default function BlogDetailPage() {
     const businessId = params.id as string;
     const blogId = params.blogId as string;
 
+    const [activeTab, setActiveTab] = useState<"edit" | "comments">("edit");
     const [deleteCommentId, setDeleteCommentId] = useState<string | null>(null);
 
     // Fetch blog data
@@ -87,7 +76,7 @@ export default function BlogDetailPage() {
     // Loading state
     if (isBlogLoading) {
         return (
-            <div className="flex min-h-[400px] items-center justify-center">
+            <div className="flex h-screen items-center justify-center bg-background">
                 <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
         );
@@ -96,7 +85,7 @@ export default function BlogDetailPage() {
     // Error state
     if (isBlogError || !blog) {
         return (
-            <div className="flex min-h-[400px] flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
+            <div className="flex min-h-screen flex-col items-center justify-center bg-background p-8 text-center">
                 <div className="flex h-20 w-20 items-center justify-center rounded-full bg-destructive/10">
                     <FileText className="h-10 w-10 text-destructive" />
                 </div>
@@ -120,226 +109,128 @@ export default function BlogDetailPage() {
     const pendingCount = comments.filter((c) => !c.isApproved).length;
 
     return (
-        <div className="space-y-6">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => router.push(`/business/${businessId}/blog`)}
-                    >
-                        <ArrowLeft className="h-4 w-4" />
-                    </Button>
-                    <div>
-                        <h1 className="text-2xl font-semibold tracking-tight">Blog Details</h1>
-                        <p className="text-sm text-muted-foreground">
-                            Manage blog content and moderate comments
-                        </p>
+        <div className="flex flex-col min-h-screen bg-background">
+            {/* Sticky Header with Tabs */}
+            <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b">
+                <div className="max-w-[1600px] mx-auto px-4 sm:px-6">
+                    <div className="h-14 flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => router.push(`/business/${businessId}/blog`)}
+                                title="Back to Blogs"
+                            >
+                                <ArrowLeft className="h-4 w-4" />
+                            </Button>
+                            <div className="h-4 w-[1px] bg-border" />
+                            <h1 className="text-sm font-semibold truncate max-w-[200px] sm:max-w-[400px]">
+                                {blog.title}
+                            </h1>
+                        </div>
                     </div>
-                </div>
-                <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm">
-                        <Eye className="mr-2 h-4 w-4" />
-                        Preview
-                    </Button>
-                    <Button variant="outline" size="sm">
-                        <Edit className="mr-2 h-4 w-4" />
-                        Edit Blog
-                    </Button>
-                </div>
-            </div>
-
-            {/* Blog Info Card */}
-            <Card>
-                <CardHeader>
-                    <div className="flex items-start justify-between">
-                        <div className="space-y-2 flex-1">
-                            <div className="flex items-center gap-2">
-                                <CardTitle className="text-xl">{blog.title}</CardTitle>
-                                <Badge
-                                    variant="outline"
-                                    className={statusConfig[blog.status].className}
-                                >
-                                    {statusConfig[blog.status].label}
+                    {/* Tabs Navigation in Header */}
+                    <div className="flex items-center gap-6 -mb-[1px]">
+                        <button
+                            onClick={() => setActiveTab("edit")}
+                            className={cn(
+                                "flex items-center gap-2 py-3 text-sm font-medium border-b-2 transition-colors",
+                                activeTab === "edit"
+                                    ? "border-primary text-foreground"
+                                    : "border-transparent text-muted-foreground hover:text-foreground"
+                            )}
+                        >
+                            <FileText className="h-4 w-4" />
+                            Editor
+                        </button>
+                        <button
+                            onClick={() => setActiveTab("comments")}
+                            className={cn(
+                                "flex items-center gap-2 py-3 text-sm font-medium border-b-2 transition-colors",
+                                activeTab === "comments"
+                                    ? "border-primary text-foreground"
+                                    : "border-transparent text-muted-foreground hover:text-foreground"
+                            )}
+                        >
+                            <MessageSquare className="h-4 w-4" />
+                            Comments
+                            {pendingCount > 0 && (
+                                <Badge variant="destructive" className="h-5 px-1.5 text-[10px] rounded-full">
+                                    {pendingCount}
                                 </Badge>
-                            </div>
-                            <p className="text-sm text-muted-foreground">/{blog.slug}</p>
-                        </div>
+                            )}
+                        </button>
                     </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    {blog.excerpt && (
-                        <div>
-                            <h4 className="text-sm font-medium mb-2">Excerpt</h4>
-                            <p className="text-sm text-muted-foreground">{blog.excerpt}</p>
-                        </div>
-                    )}
+                </div>
+            </header>
 
-                    <Separator />
+            <main className="flex-1 w-full max-w-[1600px] mx-auto">
+                {activeTab === "edit" ? (
+                    <div className={cn("h-full", activeTab !== "edit" && "hidden")}>
 
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div className="space-y-1">
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                <Calendar className="h-4 w-4" />
-                                <span>Created</span>
-                            </div>
-                            <p className="text-sm font-medium">
-                                {new Date(blog.createdAt).toLocaleDateString("en-US", {
-                                    month: "short",
-                                    day: "numeric",
-                                    year: "numeric",
-                                })}
-                            </p>
-                        </div>
-
-                        {blog.publishedAt && (
-                            <div className="space-y-1">
-                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                    <Calendar className="h-4 w-4" />
-                                    <span>Published</span>
-                                </div>
-                                <p className="text-sm font-medium">
-                                    {new Date(blog.publishedAt).toLocaleDateString("en-US", {
-                                        month: "short",
-                                        day: "numeric",
-                                        year: "numeric",
-                                    })}
-                                </p>
-                            </div>
-                        )}
-
-                        <div className="space-y-1">
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                <Eye className="h-4 w-4" />
-                                <span>Views</span>
-                            </div>
-                            <p className="text-sm font-medium">{blog.viewCount || 0}</p>
-                        </div>
-
-                        <div className="space-y-1">
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                <MessageSquare className="h-4 w-4" />
-                                <span>Comments</span>
-                            </div>
-                            <p className="text-sm font-medium">{blog.commentCount || 0}</p>
-                        </div>
+                        <BlogEditor
+                            businessId={businessId}
+                            mode="edit"
+                            initialData={blog}
+                        />
                     </div>
-
-                    {blog.category && (
-                        <>
-                            <Separator />
-                            <div className="space-y-1">
-                                <h4 className="text-sm font-medium">Category</h4>
-                                <Badge variant="secondary">{blog.category}</Badge>
-                            </div>
-                        </>
-                    )}
-                </CardContent>
-            </Card>
-
-            {/* Comments Section */}
-            <Card>
-                <CardHeader>
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <CardTitle className="text-lg">Comments</CardTitle>
-                            <p className="text-sm text-muted-foreground mt-1">
-                                {approvedCount} approved, {pendingCount} pending
-                            </p>
-                        </div>
-                    </div>
-                </CardHeader>
-                <CardContent>
-                    {isCommentsLoading ? (
-                        <div className="flex items-center justify-center py-8">
-                            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-                        </div>
-                    ) : comments.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center py-12 text-center">
-                            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
-                                <MessageSquare className="h-8 w-8 text-muted-foreground" />
-                            </div>
-                            <h3 className="mt-4 text-base font-semibold">No comments yet</h3>
-                            <p className="mt-2 text-sm text-muted-foreground">
-                                This blog post doesn't have any comments yet.
-                            </p>
-                        </div>
-                    ) : (
-                        <div className="space-y-4">
-                            {comments.map((comment) => (
-                                <div
-                                    key={comment._id}
-                                    className="flex items-start gap-4 rounded-lg border p-4"
-                                >
-                                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted">
-                                        <User className="h-5 w-5 text-muted-foreground" />
+                ) : (
+                    /* Comments View */
+                    <div className="p-4 sm:px-6 py-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        {/* Summary Cards */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                            <Card>
+                                <CardContent className="p-6 flex items-center gap-4">
+                                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                                        <MessageSquare className="h-5 w-5" />
                                     </div>
-                                    <div className="flex-1 space-y-2">
-                                        <div className="flex items-start justify-between">
-                                            <div>
-                                                <p className="text-sm font-medium">
-                                                    {comment.lead?.name || "Anonymous"}
-                                                </p>
-                                                {comment.lead?.email && (
-                                                    <p className="text-xs text-muted-foreground">
-                                                        {comment.lead.email}
-                                                    </p>
-                                                )}
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <Badge
-                                                    variant={comment.isApproved ? "default" : "secondary"}
-                                                    className="text-xs"
-                                                >
-                                                    {comment.isApproved ? "Approved" : "Pending"}
-                                                </Badge>
-                                                <p className="text-xs text-muted-foreground">
-                                                    {new Date(comment.createdAt).toLocaleDateString("en-US", {
-                                                        month: "short",
-                                                        day: "numeric",
-                                                        year: "numeric",
-                                                    })}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <p className="text-sm text-muted-foreground">{comment.comment}</p>
-                                        <div className="flex items-center gap-2 pt-2">
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => handleApproveToggle(comment)}
-                                                disabled={approveCommentMutation.isPending}
-                                            >
-                                                {comment.isApproved ? (
-                                                    <>
-                                                        <XCircle className="mr-2 h-4 w-4" />
-                                                        Unapprove
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <CheckCircle2 className="mr-2 h-4 w-4" />
-                                                        Approve
-                                                    </>
-                                                )}
-                                            </Button>
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => setDeleteCommentId(comment._id)}
-                                                disabled={deleteCommentMutation.isPending}
-                                            >
-                                                <Trash2 className="mr-2 h-4 w-4" />
-                                                Delete
-                                            </Button>
-                                        </div>
+                                    <div>
+                                        <p className="text-sm font-medium text-muted-foreground">Total Comments</p>
+                                        <h3 className="text-2xl font-bold">{comments.length}</h3>
                                     </div>
-                                </div>
-                            ))}
+                                </CardContent>
+                            </Card>
+                            <Card>
+                                <CardContent className="p-6 flex items-center gap-4">
+                                    <div className="h-10 w-10 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                                        <CheckCircle2 className="h-5 w-5" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-medium text-muted-foreground">Approved</p>
+                                        <h3 className="text-2xl font-bold">{approvedCount}</h3>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                            <Card>
+                                <CardContent className="p-6 flex items-center gap-4">
+                                    <div className="h-10 w-10 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-500">
+                                        <Loader2 className="h-5 w-5" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-medium text-muted-foreground">Pending</p>
+                                        <h3 className="text-2xl font-bold">{pendingCount}</h3>
+                                    </div>
+                                </CardContent>
+                            </Card>
                         </div>
-                    )}
-                </CardContent>
-            </Card>
+
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Comment Moderation</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <CommentsTable
+                                    comments={comments}
+                                    isLoading={isCommentsLoading}
+                                    onApproveToggle={handleApproveToggle}
+                                    onDelete={(id) => setDeleteCommentId(id)}
+                                    isActionLoading={approveCommentMutation.isPending || deleteCommentMutation.isPending}
+                                />
+                            </CardContent>
+                        </Card>
+                    </div>
+                )}
+            </main>
 
             {/* Delete Confirmation Dialog */}
             <AlertDialog open={!!deleteCommentId} onOpenChange={() => setDeleteCommentId(null)}>
