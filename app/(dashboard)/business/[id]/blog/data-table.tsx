@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useRouter, useParams } from "next/navigation";
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -97,8 +98,15 @@ const statusConfig = {
 
 // Grid Card Component
 function BlogGridCard({ blog }: { blog: Blog }) {
+  const router = useRouter();
+  const params = useParams();
+  const businessId = params.id as string;
+
   return (
-    <Card className="group relative overflow-hidden transition-all hover:shadow-md hover:border-foreground/20">
+    <Card
+      className="group relative overflow-hidden transition-all hover:shadow-md hover:border-foreground/20 cursor-pointer"
+      onClick={() => router.push(`/business/${businessId}/blog/${blog._id}`)}
+    >
       {/* Featured Image */}
       {blog.featuredImage ? (
         <div className="aspect-[16/9] w-full overflow-hidden">
@@ -129,37 +137,6 @@ function BlogGridCard({ blog }: { blog: Blog }) {
               {blog.title}
             </h3>
           </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
-              >
-                <MoreHorizontal className="h-3.5 w-3.5" />
-                <span className="sr-only">Open menu</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-[140px]">
-              <DropdownMenuItem className="text-xs">
-                <Eye className="mr-2 h-3.5 w-3.5" />
-                Preview
-              </DropdownMenuItem>
-              <DropdownMenuItem className="text-xs">
-                <ExternalLink className="mr-2 h-3.5 w-3.5" />
-                View live
-              </DropdownMenuItem>
-              <DropdownMenuItem className="text-xs">
-                <Pencil className="mr-2 h-3.5 w-3.5" />
-                Edit
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-xs text-destructive focus:text-destructive">
-                <Trash2 className="mr-2 h-3.5 w-3.5" />
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
         </div>
       </CardHeader>
 
@@ -173,15 +150,15 @@ function BlogGridCard({ blog }: { blog: Blog }) {
           <Calendar className="h-2.5 w-2.5" />
           {blog.publishedAt
             ? new Date(blog.publishedAt).toLocaleDateString("en-US", {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-              })
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+            })
             : new Date(blog.createdAt).toLocaleDateString("en-US", {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-              })}
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+            })}
         </div>
       </CardContent>
     </Card>
@@ -200,6 +177,10 @@ export function BlogDataTable<TData, TValue>({
   onPageChange,
   onPageSizeChange,
 }: DataTableProps<TData, TValue>) {
+  const router = useRouter();
+  const params = useParams();
+  const businessId = params.id as string;
+
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     [],
@@ -430,9 +411,9 @@ export function BlogDataTable<TData, TValue>({
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
                     </TableHead>
                   ))}
                 </TableRow>
@@ -443,7 +424,12 @@ export function BlogDataTable<TData, TValue>({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
-                  className="group"
+                  className="group cursor-pointer hover:bg-muted/50"
+                  onClick={() =>
+                    router.push(
+                      `/business/${businessId}/blog/${(row.original as Blog)._id}`,
+                    )
+                  }
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id} className="py-3">
@@ -465,7 +451,7 @@ export function BlogDataTable<TData, TValue>({
         <div className="flex items-center justify-between px-2">
           <div className="flex-1 text-sm text-muted-foreground">
             {viewMode === "table" &&
-            table.getFilteredSelectedRowModel().rows.length > 0 ? (
+              table.getFilteredSelectedRowModel().rows.length > 0 ? (
               <span>
                 {table.getFilteredSelectedRowModel().rows.length} of{" "}
                 {pagination?.totalItems ??
