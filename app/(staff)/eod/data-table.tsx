@@ -23,8 +23,10 @@ import {
   FileText,
   Loader2,
 } from "lucide-react";
+import { type DateRange } from "react-day-picker";
 
 import { Button } from "@/components/ui/button";
+import { DatePickerWithRange } from "@/components/ui/date-range-picker";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -55,6 +57,9 @@ interface DataTableProps<TData, TValue> {
   isLoading?: boolean;
   statusFilter?: string;
   onStatusFilter?: (status: string) => void;
+  dateRange?: DateRange;
+  onDateRangeChange?: (range: DateRange | undefined) => void;
+  onRowClick?: (row: TData) => void;
 }
 
 export function DataTable<TData, TValue>({
@@ -63,6 +68,9 @@ export function DataTable<TData, TValue>({
   isLoading = false,
   statusFilter = "all",
   onStatusFilter,
+  dateRange,
+  onDateRangeChange,
+  onRowClick,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "date", desc: true },
@@ -93,20 +101,22 @@ export function DataTable<TData, TValue>({
     },
   });
 
-  const hasFilters = statusFilter !== "all";
+  const hasFilters =
+    statusFilter !== "all" || !!dateRange?.from || !!dateRange?.to;
 
   const clearFilters = () => {
     onStatusFilter?.("all");
+    onDateRangeChange?.(undefined);
   };
 
   return (
     <div className="space-y-4">
       {/* Toolbar */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-1 items-center gap-2">
+        <div className="flex flex-1 flex-wrap items-center gap-2">
           {/* Status Filter */}
           <Select value={statusFilter} onValueChange={onStatusFilter}>
-            <SelectTrigger className="h-9 w-[180px] bg-background">
+            <SelectTrigger className="h-9 w-[160px] bg-background">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
@@ -117,6 +127,13 @@ export function DataTable<TData, TValue>({
             </SelectContent>
           </Select>
 
+          {/* Date Range Filter */}
+          <DatePickerWithRange
+            value={dateRange}
+            onChange={onDateRangeChange}
+            placeholder="Filter by date range"
+          />
+
           {/* Clear Filters */}
           {hasFilters && (
             <Button
@@ -124,7 +141,7 @@ export function DataTable<TData, TValue>({
               onClick={clearFilters}
               className="h-9 px-2 lg:px-3"
             >
-              Reset
+              Clear
               <X className="ml-2 h-4 w-4" />
             </Button>
           )}
@@ -201,7 +218,11 @@ export function DataTable<TData, TValue>({
               </TableRow>
             ) : table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} className="group">
+                <TableRow
+                  key={row.id}
+                  className="group cursor-pointer"
+                  onClick={() => onRowClick?.(row.original)}
+                >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id} className="py-3">
                       {flexRender(

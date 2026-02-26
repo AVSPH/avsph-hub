@@ -6,6 +6,7 @@ import type {
   EditOwnEodRequest,
   EditEodResponse,
   EodQuery,
+  PaginatedEodResponse,
 } from "@/types/eod.types";
 
 // Submit an EOD report
@@ -28,16 +29,18 @@ export const resubmitEod = async (
 // Get my EOD reports
 export const getMyEodReports = async (
   query?: EodQuery,
-): Promise<EodReport[]> => {
+): Promise<PaginatedEodResponse> => {
   const params = new URLSearchParams();
   if (query?.startDate) params.append("startDate", query.startDate);
   if (query?.endDate) params.append("endDate", query.endDate);
   if (query?.status) params.append("status", query.status);
+  if (query?.page) params.append("page", query.page);
+  if (query?.limit) params.append("limit", query.limit);
 
   const queryString = params.toString();
   const url = queryString ? `/eod/me?${queryString}` : "/eod/me";
 
-  const response = await api.get<EodReport[]>(url);
+  const response = await api.get<PaginatedEodResponse>(url);
   return response.data;
 };
 

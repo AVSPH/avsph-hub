@@ -441,6 +441,9 @@ function ViewEodDialog({
 export default function StaffEodPage() {
   // Filter state
   const [status, setStatus] = useState<string>("all");
+  const [dateRange, setDateRange] = useState<
+    import("react-day-picker").DateRange | undefined
+  >(undefined);
 
   // Dialog state
   const [submitOpen, setSubmitOpen] = useState(false);
@@ -452,15 +455,28 @@ export default function StaffEodPage() {
   // Build query
   const queryParams: EodQuery = {
     ...(status !== "all" && { status: status as EodStatus }),
+    ...(dateRange?.from && {
+      startDate: dateRange.from.toISOString().split("T")[0],
+    }),
+    ...(dateRange?.to && {
+      endDate: dateRange.to.toISOString().split("T")[0],
+    }),
   };
 
   // Fetch data
-  const { data: reports, isLoading, isError } = useMyEodReports(queryParams);
+  const { data: pagedData, isLoading, isError } = useMyEodReports(queryParams);
 
   // Handlers
   const handleStatusFilter = useCallback((value: string) => {
     setStatus(value);
   }, []);
+
+  const handleDateRangeChange = useCallback(
+    (range: import("react-day-picker").DateRange | undefined) => {
+      setDateRange(range);
+    },
+    [],
+  );
 
   const handleView = useCallback((report: EodReport) => {
     setViewReport(report);
@@ -476,11 +492,13 @@ export default function StaffEodPage() {
   const columns = useMemo(
     () =>
       getColumns({
-        onView: handleView,
         onResubmit: handleResubmit,
       }),
-    [handleView, handleResubmit],
+    [handleResubmit],
   );
+
+  const eodReports = pagedData?.data ?? [];
+  const totalCount = pagedData?.pagination?.totalCount ?? 0;
 
   // Error state
   if (isError) {
@@ -499,8 +517,6 @@ export default function StaffEodPage() {
     );
   }
 
-  const eodReports = reports || [];
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -515,9 +531,7 @@ export default function StaffEodPage() {
         </div>
         <div className="flex items-center gap-3">
           <div className="hidden items-center gap-2 text-sm text-muted-foreground sm:flex">
-            <span className="font-medium text-foreground">
-              {eodReports.length}
-            </span>
+            <span className="font-medium text-foreground">{totalCount}</span>
             <span>total reports</span>
           </div>
           <Button onClick={() => setSubmitOpen(true)}>
@@ -534,6 +548,11 @@ export default function StaffEodPage() {
         isLoading={isLoading}
         statusFilter={status}
         onStatusFilter={handleStatusFilter}
+        dateRange={dateRange}
+        onDateRangeChange={handleDateRangeChange}
+        onRowClick={(row) =>
+          handleView(row as import("@/types/eod.types").EodReport)
+        }
       />
 
       {/* Submit EOD Dialog */}

@@ -10,6 +10,7 @@ import type {
   SubmitEodRequest,
   EditOwnEodRequest,
   EodQuery,
+  PaginatedEodResponse,
 } from "@/types/eod.types";
 import { AxiosError } from "axios";
 
@@ -20,7 +21,7 @@ interface ApiError {
 
 // Hook to get staff's own EOD reports
 export const useMyEodReports = (query?: EodQuery) => {
-  return useQuery({
+  return useQuery<PaginatedEodResponse>({
     queryKey: ["eod", "me", query],
     queryFn: () => getMyEodReports(query),
     staleTime: 30 * 1000,

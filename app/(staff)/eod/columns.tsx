@@ -1,7 +1,7 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { ArrowUpDown, Eye, RotateCcw } from "lucide-react";
+import { ArrowUpDown, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -39,7 +39,6 @@ const approvalConfig = {
 };
 
 interface ColumnOptions {
-  onView?: (report: EodReport) => void;
   onResubmit?: (report: EodReport) => void;
 }
 
@@ -156,41 +155,27 @@ export function getColumns(
         const report = row.original;
         const needsRevision = report.status === "needs_revision";
 
+        if (!needsRevision) return null;
+
         return (
-          <div className="flex items-center gap-1">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8"
-                    onClick={() => options.onView?.(report)}
-                  >
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>View details</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            {needsRevision && (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-amber-500 hover:text-amber-600"
-                      onClick={() => options.onResubmit?.(report)}
-                    >
-                      <RotateCcw className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Resubmit</TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            )}
-          </div>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-amber-500 hover:text-amber-600"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    options.onResubmit?.(report);
+                  }}
+                >
+                  <RotateCcw className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Resubmit</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         );
       },
     },
