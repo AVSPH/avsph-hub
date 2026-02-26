@@ -7,7 +7,7 @@ import {
   createAdmin,
   updateAdmin,
   deleteAdmin,
-} from "@/api/admin/admin";
+} from "@/hooks/api/admin/admin";
 import type {
   Admin,
   CreateAdminRequest,

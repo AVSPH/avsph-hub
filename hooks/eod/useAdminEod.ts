@@ -8,7 +8,7 @@ import {
   reviewEod,
   adminEditEod,
   deleteEod,
-} from "@/api/eod/eod-admin";
+} from "@/hooks/api/eod/eod-admin";
 import type {
   ReviewEodRequest,
   AdminEditEodRequest,

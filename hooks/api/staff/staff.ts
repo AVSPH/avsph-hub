@@ -1,8 +1,5 @@
-import api from "../../utils/api";
-import type {
-  Staff,
-  StaffDocument,
-} from "../../types/staff.types.js";
+import api from "../../../utils/api";
+import type { Staff, StaffDocument } from "../../../types/staff.types.js";
 
 export interface UpdateStaffProfileRequest {
   firstName?: string;

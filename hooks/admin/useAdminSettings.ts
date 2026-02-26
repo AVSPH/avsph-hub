@@ -5,7 +5,7 @@ import {
   updateAdminProfile,
   updateAdminEmail,
   updateAdminPassword,
-} from "@/api/admin/admin.settings";
+} from "@/hooks/api/admin/admin.settings";
 import type {
   UpdateAdminProfileRequest,
   UpdateAdminEmailRequest,

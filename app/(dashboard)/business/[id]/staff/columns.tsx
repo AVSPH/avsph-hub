@@ -32,6 +32,10 @@ import {
 import type { Staff } from "@/types/staff.types";
 import { toast } from "sonner";
 
+interface ColumnOptions {
+  onView: (staff: Staff) => void;
+}
+
 const statusConfig = {
   active: {
     label: "Active",
@@ -62,7 +66,9 @@ const employmentTypeConfig = {
   },
 };
 
-export const columns: ColumnDef<Staff>[] = [
+export const createColumns = ({
+  onView,
+}: ColumnOptions): ColumnDef<Staff>[] => [
   {
     id: "select",
     header: ({ table }) => (
@@ -74,6 +80,7 @@ export const columns: ColumnDef<Staff>[] = [
         onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
         aria-label="Select all"
         className="translate-y-[2px]"
+        onClick={(e) => e.stopPropagation()}
       />
     ),
     cell: ({ row }) => (
@@ -82,6 +89,7 @@ export const columns: ColumnDef<Staff>[] = [
         onCheckedChange={(value) => row.toggleSelected(!!value)}
         aria-label="Select row"
         className="translate-y-[2px]"
+        onClick={(e) => e.stopPropagation()}
       />
     ),
     enableSorting: false,
@@ -217,7 +225,10 @@ export const columns: ColumnDef<Staff>[] = [
     cell: ({ row }) => {
       const staff = row.original;
       return (
-        <div className="flex items-center gap-1">
+        <div
+          className="flex items-center gap-1"
+          onClick={(e) => e.stopPropagation()}
+        >
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -270,43 +281,45 @@ export const columns: ColumnDef<Staff>[] = [
       const staff = row.original;
 
       return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              className="h-8 w-8 p-0 data-[state=open]:bg-muted"
-            >
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-[160px]">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() => {
-                navigator.clipboard.writeText(staff._id);
-                toast.success("Staff ID copied to clipboard");
-              }}
-            >
-              <Copy className="mr-2 h-4 w-4" />
-              Copy ID
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Eye className="mr-2 h-4 w-4" />
-              View details
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Pencil className="mr-2 h-4 w-4" />
-              Edit
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-destructive focus:text-destructive">
-              <Trash2 className="mr-2 h-4 w-4" />
-              Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div onClick={(e) => e.stopPropagation()}>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                className="h-8 w-8 p-0 data-[state=open]:bg-muted"
+              >
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-[160px]">
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => {
+                  navigator.clipboard.writeText(staff._id);
+                  toast.success("Staff ID copied to clipboard");
+                }}
+              >
+                <Copy className="mr-2 h-4 w-4" />
+                Copy ID
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onView(staff)}>
+                <Eye className="mr-2 h-4 w-4" />
+                View details
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onView(staff)}>
+                <Pencil className="mr-2 h-4 w-4" />
+                Edit
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="text-destructive focus:text-destructive">
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       );
     },
   },

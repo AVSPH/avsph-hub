@@ -1,18 +1,19 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { Users, Plus, Loader2 } from "lucide-react";
 import { useStaffByBusiness } from "@/hooks/useStaff";
 import { useBusinessById } from "@/hooks/useBusiness";
 import { Button } from "@/components/ui/button";
 import { CreateStaffDialog } from "@/components/create-staff-dialog";
-import { columns } from "./columns";
+import { createColumns } from "./columns";
 import { DataTable } from "./data-table";
-import type { StaffQueryParams } from "@/types/staff.types";
+import type { Staff, StaffQueryParams } from "@/types/staff.types";
 
 export default function StaffPage() {
   const params = useParams();
+  const router = useRouter();
   const businessId = params.id as string;
 
   // Dialog state
@@ -64,6 +65,15 @@ export default function StaffPage() {
   const handlePageChange = useCallback((newPage: number) => {
     setPage(newPage);
   }, []);
+
+  const handleRowClick = useCallback(
+    (staff: Staff) => {
+      router.push(`/business/${businessId}/staff/${staff._id}`);
+    },
+    [router, businessId],
+  );
+
+  const columns = createColumns({ onView: handleRowClick });
 
   // Loading state
   if (isBusinessLoading) {
@@ -127,6 +137,7 @@ export default function StaffPage() {
         onSearch={handleSearch}
         onStatusFilter={handleStatusFilter}
         onEmploymentTypeFilter={handleEmploymentTypeFilter}
+        onRowClick={handleRowClick}
         searchValue={search}
         statusFilter={status}
         employmentTypeFilter={employmentType}

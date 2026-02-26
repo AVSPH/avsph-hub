@@ -11,7 +11,7 @@ import {
   deleteBlog,
   uploadBlogFeaturedImage,
   uploadBlogContentImage,
-} from "@/api/blog/blog";
+} from "@/hooks/api/blog/blog";
 import type {
   Blog,
   BlogQueryParams,

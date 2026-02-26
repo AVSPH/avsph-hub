@@ -9,7 +9,7 @@ import {
   deleteStaff,
   uploadStaffPhoto,
   uploadStaffDocument,
-} from "@/api/staff/staff-management";
+} from "@/hooks/api/staff/staff-management";
 import type {
   StaffQueryParams,
   CreateStaffRequest,
@@ -22,10 +22,8 @@ import {
   type UpdateStaffProfileRequest,
   type AddStaffDocumentRequest,
   type ChangeStaffPasswordRequest,
-} from "@/api/staff/staff";
-import { useStaffStore
-  
- } from "@/store/staff.store";
+} from "@/hooks/api/staff/staff";
+import { useStaffStore } from "@/store/staff.store";
 interface ApiError {
   error?: string;
   message?: string;

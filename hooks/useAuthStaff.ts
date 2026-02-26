@@ -5,7 +5,7 @@ import {
   loginStaff,
   getCurrentStaff,
   setStaffAuthToken,
-} from "@/api/auth/staff.auth";
+} from "@/hooks/api/auth/staff.auth";
 import type { StaffLoginRequest } from "@/types/staff.types";
 import { useStaffStore } from "@/store/staff.store";
 import { AxiosError } from "axios";
@@ -77,5 +77,3 @@ export const useStaffLogout = () => {
     router.push("/login");
   };
 };
-
-

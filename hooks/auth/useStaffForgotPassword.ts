@@ -6,7 +6,7 @@ import {
   staffResetPassword,
   type StaffForgotPasswordRequest,
   type StaffResetPasswordRequest,
-} from "@/api/auth/forgot-password/staff-forgot-password";
+} from "@/hooks/api/auth/forgot-password/staff-forgot-password";
 
 interface ApiError {
   error?: string;

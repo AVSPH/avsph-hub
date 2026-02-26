@@ -5,7 +5,7 @@ import {
   resubmitEod,
   getMyEodReports,
   getMyEodById,
-} from "@/api/eod/eod-staff";
+} from "@/hooks/api/eod/eod-staff";
 import type {
   SubmitEodRequest,
   EditOwnEodRequest,

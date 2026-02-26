@@ -59,6 +59,7 @@ interface DataTableProps<TData, TValue> {
   onSearch?: (search: string) => void;
   onStatusFilter?: (status: string) => void;
   onEmploymentTypeFilter?: (type: string) => void;
+  onRowClick?: (row: TData) => void;
   searchValue?: string;
   statusFilter?: string;
   employmentTypeFilter?: string;
@@ -73,6 +74,7 @@ export function DataTable<TData, TValue>({
   onSearch,
   onStatusFilter,
   onEmploymentTypeFilter,
+  onRowClick,
   searchValue = "",
   statusFilter = "all",
   employmentTypeFilter = "all",
@@ -261,7 +263,8 @@ export function DataTable<TData, TValue>({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
-                  className="group"
+                  className={`group${onRowClick ? " cursor-pointer" : ""}`}
+                  onClick={() => onRowClick?.(row.original)}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id} className="py-3">

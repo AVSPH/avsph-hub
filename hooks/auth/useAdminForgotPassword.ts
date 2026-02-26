@@ -6,7 +6,7 @@ import {
   adminResetPassword,
   type AdminForgotPasswordRequest,
   type AdminResetPasswordRequest,
-} from "@/api/auth/forgot-password/admin-forgot-password";
+} from "@/hooks/api/auth/forgot-password/admin-forgot-password";
 
 interface ApiError {
   error?: string;
