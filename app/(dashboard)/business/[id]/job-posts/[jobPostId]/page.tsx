@@ -258,7 +258,7 @@ export default function JobPostDetailPage() {
             // Validate stage exists
             const validStage = jobPost?.stages.find((s) => s.id === targetStageId);
             if (validStage) {
-                updateStage({ id: applicantId, stage: validStage.id });
+                updateStage({ id: applicantId, stage: validStage.id, jobId: jobPostId });
             }
         },
         [applicants, jobPost, updateStage],
@@ -544,6 +544,7 @@ export default function JobPostDetailPage() {
                                                             updateStage({
                                                                 id: selectedApplicant._id,
                                                                 stage: stage.id,
+                                                                jobId: jobPostId,
                                                             });
                                                             setSheetOpen(false);
                                                         }

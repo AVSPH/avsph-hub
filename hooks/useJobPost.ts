@@ -17,6 +17,7 @@ import {
 import type {
     CreateJobPostRequest,
     UpdateJobPostRequest,
+    Applicant,
     UpdateApplicantRequest,
     HireApplicantRequest,
 } from "@/types/jobPost.types";
@@ -175,24 +176,68 @@ export const useApplicantsByJob = (jobId: string) => {
     });
 };
 
-// Update applicant stage (drag & drop)
+// Update applicant stage (drag & drop) — with optimistic update
 export const useUpdateApplicantStage = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: ({ id, stage }: { id: string; stage: string }) =>
-            updateApplicantStage(id, stage),
-        onSuccess: (updatedApplicant) => {
-            queryClient.invalidateQueries({
-                queryKey: ["applicants", "job", updatedApplicant.jobId],
+        mutationFn: ({
+            id,
+            stage,
+        }: {
+            id: string;
+            stage: string;
+            jobId: string;
+        }) => updateApplicantStage(id, stage),
+
+        onMutate: async ({ id, stage, jobId }) => {
+            // Cancel any outgoing refetches so they don't overwrite our optimistic update
+            await queryClient.cancelQueries({
+                queryKey: ["applicants", "job", jobId],
             });
+
+            // Snapshot the previous value
+            const previousApplicants = queryClient.getQueryData<Applicant[]>([
+                "applicants",
+                "job",
+                jobId,
+            ]);
+
+            // Optimistically update the applicant's stage in the cache
+            queryClient.setQueryData<Applicant[]>(
+                ["applicants", "job", jobId],
+                (old) =>
+                    old?.map((applicant) =>
+                        applicant._id === id
+                            ? { ...applicant, stage }
+                            : applicant,
+                    ),
+            );
+
+            return { previousApplicants, jobId };
         },
-        onError: (error: AxiosError<ApiError>) => {
+
+        onError: (error: AxiosError<ApiError>, _variables, context) => {
+            // Roll back to the previous state
+            if (context?.previousApplicants) {
+                queryClient.setQueryData(
+                    ["applicants", "job", context.jobId],
+                    context.previousApplicants,
+                );
+            }
+
             const message =
                 error.response?.data?.error ||
                 error.response?.data?.message ||
                 "Failed to move applicant";
             toast.error("Stage update failed", { description: message });
+        },
+
+        onSettled: (_data, _error, variables) => {
+            // Always re-sync with the server
+            queryClient.invalidateQueries({
+                queryKey: ["applicants", "job", variables.jobId],
+            });
         },
     });
 };
