@@ -46,7 +46,7 @@ export default function StaffSettingsPage() {
   );
 
   return (
-    <div className="flex flex-col lg:flex-row gap-8">
+    <div className="flex flex-col lg:flex-row gap-8 max-w-4xl mx-auto">
       {/* Sidebar */}
       <aside className="lg:w-56 shrink-0">
         <div className="sticky top-20 space-y-4">

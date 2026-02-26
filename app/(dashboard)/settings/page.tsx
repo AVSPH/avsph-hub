@@ -50,9 +50,10 @@ import {
 } from "@/hooks/useAdmin";
 import { useBusinesses } from "@/hooks/useBusiness";
 import { useAdminStore } from "@/store/admin.store";
+import { RequireSuperAdmin } from "@/components/auth/require-auth";
 import type { Admin, AdminRole } from "@/types/admin.types";
 
-export default function TeamMembersPage() {
+function TeamMembersPage() {
   const [searchQuery, setSearchQuery] = useState("");
 
   // Create form state
@@ -85,7 +86,7 @@ export default function TeamMembersPage() {
     (admin) =>
       admin.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       admin.lastName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      admin.email.toLowerCase().includes(searchQuery.toLowerCase())
+      admin.email.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   const getInitials = (firstName: string, lastName: string) => {
@@ -114,7 +115,7 @@ export default function TeamMembersPage() {
           setRole("admin");
           setSelectedBusinessIds([]);
         },
-      }
+      },
     );
   };
 
@@ -122,7 +123,7 @@ export default function TeamMembersPage() {
     setSelectedBusinessIds((prev) =>
       prev.includes(businessId)
         ? prev.filter((id) => id !== businessId)
-        : [...prev, businessId]
+        : [...prev, businessId],
     );
   };
 
@@ -159,7 +160,7 @@ export default function TeamMembersPage() {
           setEditDialogOpen(false);
           setEditingAdmin(null);
         },
-      }
+      },
     );
   };
 
@@ -167,12 +168,16 @@ export default function TeamMembersPage() {
     setEditBusinessIds((prev) =>
       prev.includes(businessId)
         ? prev.filter((id) => id !== businessId)
-        : [...prev, businessId]
+        : [...prev, businessId],
     );
   };
 
   const handleDeleteAdmin = (admin: Admin) => {
-    if (confirm(`Are you sure you want to deactivate ${admin.firstName} ${admin.lastName}?`)) {
+    if (
+      confirm(
+        `Are you sure you want to deactivate ${admin.firstName} ${admin.lastName}?`,
+      )
+    ) {
       deleteAdmin.mutate(admin._id);
     }
   };
@@ -184,7 +189,8 @@ export default function TeamMembersPage() {
         <div className="p-6 border-b">
           <h2 className="text-lg font-semibold">Add Team Member</h2>
           <p className="text-sm text-muted-foreground mt-1">
-            Create a new administrator account. Super-admins have full access to all businesses.
+            Create a new administrator account. Super-admins have full access to
+            all businesses.
           </p>
         </div>
         <form onSubmit={handleCreateAdmin} className="p-6 space-y-4">
@@ -254,13 +260,18 @@ export default function TeamMembersPage() {
 
           <div className="space-y-2">
             <Label htmlFor="role">Role</Label>
-            <Select value={role} onValueChange={(value: AdminRole) => setRole(value)}>
+            <Select
+              value={role}
+              onValueChange={(value: AdminRole) => setRole(value)}
+            >
               <SelectTrigger className="w-full sm:w-[280px]">
                 <SelectValue placeholder="Select a role" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="admin">Admin (Limited Access)</SelectItem>
-                <SelectItem value="super-admin">Super Admin (Full Access)</SelectItem>
+                <SelectItem value="super-admin">
+                  Super Admin (Full Access)
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -276,7 +287,9 @@ export default function TeamMembersPage() {
                   >
                     <Checkbox
                       checked={selectedBusinessIds.includes(business._id)}
-                      onCheckedChange={() => toggleBusinessSelection(business._id)}
+                      onCheckedChange={() =>
+                        toggleBusinessSelection(business._id)
+                      }
                     />
                     <span className="text-sm">{business.name}</span>
                   </label>
@@ -290,7 +303,9 @@ export default function TeamMembersPage() {
 
           <div className="flex justify-end pt-2">
             <Button type="submit" disabled={createAdmin.isPending}>
-              {createAdmin.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {createAdmin.isPending && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
               Add Member
             </Button>
           </div>
@@ -358,7 +373,9 @@ export default function TeamMembersPage() {
                               </Badge>
                             )}
                           </div>
-                          <p className="text-sm text-muted-foreground">{admin.email}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {admin.email}
+                          </p>
                         </div>
                       </div>
                     </TableCell>
@@ -377,7 +394,10 @@ export default function TeamMembersPage() {
                     </TableCell>
                     <TableCell>
                       {admin.isActive ? (
-                        <Badge variant="outline" className="text-green-600 border-green-600">
+                        <Badge
+                          variant="outline"
+                          className="text-green-600 border-green-600"
+                        >
                           Active
                         </Badge>
                       ) : (
@@ -386,11 +406,17 @@ export default function TeamMembersPage() {
                     </TableCell>
                     <TableCell>
                       {admin.role === "super-admin" ? (
-                        <span className="text-sm text-muted-foreground">All businesses</span>
+                        <span className="text-sm text-muted-foreground">
+                          All businesses
+                        </span>
                       ) : admin.businessIds && admin.businessIds.length > 0 ? (
-                        <span className="text-sm">{admin.businessIds.length} businesses</span>
+                        <span className="text-sm">
+                          {admin.businessIds.length} businesses
+                        </span>
                       ) : (
-                        <span className="text-sm text-muted-foreground">None assigned</span>
+                        <span className="text-sm text-muted-foreground">
+                          None assigned
+                        </span>
                       )}
                     </TableCell>
                     <TableCell className="text-right">
@@ -407,7 +433,10 @@ export default function TeamMembersPage() {
                           variant="ghost"
                           size="icon"
                           onClick={() => handleDeleteAdmin(admin)}
-                          disabled={admin._id === currentAdmin?._id || deleteAdmin.isPending}
+                          disabled={
+                            admin._id === currentAdmin?._id ||
+                            deleteAdmin.isPending
+                          }
                           className="text-destructive hover:text-destructive"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -473,8 +502,12 @@ export default function TeamMembersPage() {
                     <SelectValue placeholder="Select a role" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="admin">Admin (Limited Access)</SelectItem>
-                    <SelectItem value="super-admin">Super Admin (Full Access)</SelectItem>
+                    <SelectItem value="admin">
+                      Admin (Limited Access)
+                    </SelectItem>
+                    <SelectItem value="super-admin">
+                      Super Admin (Full Access)
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -489,7 +522,9 @@ export default function TeamMembersPage() {
                       >
                         <Checkbox
                           checked={editBusinessIds.includes(business._id)}
-                          onCheckedChange={() => toggleEditBusinessSelection(business._id)}
+                          onCheckedChange={() =>
+                            toggleEditBusinessSelection(business._id)
+                          }
                         />
                         <span className="text-sm">{business.name}</span>
                       </label>
@@ -501,7 +536,9 @@ export default function TeamMembersPage() {
                 <div className="space-y-0.5">
                   <Label htmlFor="editIsActive">Account Status</Label>
                   <p className="text-sm text-muted-foreground">
-                    {editIsActive ? "Member can access the system." : "Member is deactivated."}
+                    {editIsActive
+                      ? "Member can access the system."
+                      : "Member is deactivated."}
                   </p>
                 </div>
                 <Switch
@@ -512,11 +549,17 @@ export default function TeamMembersPage() {
               </div>
             </div>
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setEditDialogOpen(false)}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setEditDialogOpen(false)}
+              >
                 Cancel
               </Button>
               <Button type="submit" disabled={updateAdmin.isPending}>
-                {updateAdmin.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {updateAdmin.isPending && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
                 Save Changes
               </Button>
             </DialogFooter>
@@ -524,5 +567,13 @@ export default function TeamMembersPage() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+export default function TeamMembersPageGuarded() {
+  return (
+    <RequireSuperAdmin>
+      <TeamMembersPage />
+    </RequireSuperAdmin>
   );
 }

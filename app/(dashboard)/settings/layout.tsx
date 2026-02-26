@@ -4,28 +4,40 @@ import { useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { Users, Search } from "lucide-react";
-import { RequireSuperAdmin } from "@/components/auth/require-auth";
+import { Users, Search, UserCog } from "lucide-react";
+import { RequireAuth } from "@/components/auth/require-auth";
 import { Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { useAdminStore } from "@/store/admin.store";
 
-const settingsNavItems = [
+const allNavItems = [
   {
     title: "Team Members",
     href: "/settings",
+    icon: Users,
+    superAdminOnly: true,
+  },
+  {
+    title: "Account",
+    href: "/settings/account",
+    icon: UserCog,
+    superAdminOnly: false,
   },
 ];
 
 function SettingsLayoutContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [searchQuery, setSearchQuery] = useState("");
+  const { isSuperAdmin } = useAdminStore();
 
-  const filteredNavItems = settingsNavItems.filter((item) =>
-    item.title.toLowerCase().includes(searchQuery.toLowerCase())
+  const visibleNavItems = allNavItems.filter(
+    (item) =>
+      (!item.superAdminOnly || isSuperAdmin()) &&
+      item.title.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   return (
-    <div className="flex flex-col lg:flex-row gap-8">
+    <div className="flex flex-col lg:flex-row gap-8 max-w-4xl mx-auto">
       {/* Sidebar */}
       <aside className="lg:w-56 shrink-0">
         <div className="sticky top-20 space-y-4">
@@ -45,9 +57,12 @@ function SettingsLayoutContent({ children }: { children: React.ReactNode }) {
 
           {/* Navigation */}
           <nav className="flex flex-col gap-0.5">
-            {filteredNavItems.map((item) => {
+            {visibleNavItems.map((item) => {
               const isActive =
-                pathname === item.href || pathname.startsWith(item.href + "/");
+                pathname === item.href ||
+                (item.href !== "/settings" &&
+                  pathname.startsWith(item.href + "/"));
+              const Icon = item.icon;
               return (
                 <Link
                   key={item.href}
@@ -56,10 +71,10 @@ function SettingsLayoutContent({ children }: { children: React.ReactNode }) {
                     "flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors",
                     isActive
                       ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground",
                   )}
                 >
-                  <Users className="h-4 w-4" />
+                  <Icon className="h-4 w-4" />
                   {item.title}
                 </Link>
               );
@@ -69,7 +84,7 @@ function SettingsLayoutContent({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 min-w-0">{children}</main>
+      <main className="flex-1 min-w-0 ">{children}</main>
     </div>
   );
 }
@@ -80,7 +95,7 @@ export default function SettingsLayout({
   children: React.ReactNode;
 }) {
   return (
-    <RequireSuperAdmin
+    <RequireAuth
       fallback={
         <div className="flex items-center justify-center py-12">
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -88,6 +103,6 @@ export default function SettingsLayout({
       }
     >
       <SettingsLayoutContent>{children}</SettingsLayoutContent>
-    </RequireSuperAdmin>
+    </RequireAuth>
   );
 }

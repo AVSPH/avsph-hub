@@ -37,3 +37,26 @@ export interface UpdateAdminRequest {
 export interface DeleteAdminResponse {
   message: string;
 }
+
+// ── Admin Settings ────────────────────────────────────────────────────────────
+
+export interface UpdateAdminProfileRequest {
+  firstName?: string;
+  lastName?: string;
+}
+
+export interface UpdateAdminEmailRequest {
+  email: string;
+  currentPassword: string;
+}
+
+export interface UpdateAdminPasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
+export interface AdminSettingsResponse {
+  message: string;
+  admin?: Admin;
+}
