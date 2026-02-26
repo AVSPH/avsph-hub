@@ -9,13 +9,23 @@ import {
   deleteStaff,
   uploadStaffPhoto,
   uploadStaffDocument,
-} from "@/api/staff/staff";
+} from "@/api/staff/staff-management";
 import type {
   StaffQueryParams,
   CreateStaffRequest,
   UpdateStaffRequest,
 } from "@/types/staff.types";
-
+import {
+  updateStaffProfile,
+  addStaffDocument,
+  changeStaffPassword,
+  type UpdateStaffProfileRequest,
+  type AddStaffDocumentRequest,
+  type ChangeStaffPasswordRequest,
+} from "@/api/staff/staff";
+import { useStaffStore
+  
+ } from "@/store/staff.store";
 interface ApiError {
   error?: string;
   message?: string;
@@ -177,6 +187,68 @@ export const useUploadStaffDocument = () => {
       toast.error("Upload failed", {
         description: message,
       });
+    },
+  });
+};
+
+export const useUpdateStaffProfile = () => {
+  const queryClient = useQueryClient();
+  const { setStaff } = useStaffStore();
+
+  return useMutation({
+    mutationFn: (data: UpdateStaffProfileRequest) => updateStaffProfile(data),
+    onSuccess: (data) => {
+      setStaff(data.staff);
+      queryClient.invalidateQueries({ queryKey: ["staff", "me"] });
+      toast.success("Profile updated", {
+        description: "Your profile has been saved.",
+      });
+    },
+    onError: (error: AxiosError<ApiError>) => {
+      const message =
+        error.response?.data?.error ||
+        error.response?.data?.message ||
+        "Failed to update profile";
+      toast.error("Update failed", { description: message });
+    },
+  });
+};
+
+export const useAddStaffDocument = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: AddStaffDocumentRequest) => addStaffDocument(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["staff", "me"] });
+      toast.success("Document added", {
+        description: "The document has been added to your profile.",
+      });
+    },
+    onError: (error: AxiosError<ApiError>) => {
+      const message =
+        error.response?.data?.error ||
+        error.response?.data?.message ||
+        "Failed to add document";
+      toast.error("Upload failed", { description: message });
+    },
+  });
+};
+
+export const useChangeStaffPassword = () => {
+  return useMutation({
+    mutationFn: (data: ChangeStaffPasswordRequest) => changeStaffPassword(data),
+    onSuccess: () => {
+      toast.success("Password changed", {
+        description: "Your password has been updated successfully.",
+      });
+    },
+    onError: (error: AxiosError<ApiError>) => {
+      const message =
+        error.response?.data?.error ||
+        error.response?.data?.message ||
+        "Failed to change password";
+      toast.error("Error", { description: message });
     },
   });
 };

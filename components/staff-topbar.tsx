@@ -23,6 +23,7 @@ import { cn } from "@/lib/utils";
 const navigation = [
   { name: "Dashboard", href: "/dashboard" },
   { name: "EOD Reports", href: "/eod" },
+  { name: "Settings", href: "/staff-settings" },
 ];
 
 export function StaffTopbar() {
