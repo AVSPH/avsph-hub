@@ -1,0 +1,597 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Separator } from "@/components/ui/separator";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  useCreateCompensationProfile,
+  useUpdateCompensationProfile,
+} from "@/hooks/useCompensationProfile";
+import type {
+  CompensationProfile,
+  CompensationProfileScope,
+  CreateCompensationProfileRequest,
+  UpdateCompensationProfileRequest,
+} from "@/types/compensation-profile.types";
+
+export interface CompensationProfileStaffOption {
+  id: string;
+  label: string;
+  position: string;
+}
+
+interface CompensationProfileDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  businessId: string;
+  profile?: CompensationProfile | null;
+  staffOptions: CompensationProfileStaffOption[];
+}
+
+interface FormState {
+  name: string;
+  profileScope: CompensationProfileScope;
+  staffId: string;
+  jobPosition: string;
+  hourlyRate: string;
+  overtimeRateMultiplier: string;
+  sundayRateMultiplier: string;
+  nightDifferentialRateMultiplier: string;
+  isRiceAllowanceEligible: boolean;
+  riceAllowanceFixedAmount: string;
+  isSssEnabled: boolean;
+  sssDeductionFixedAmount: string;
+  isPagIbigEnabled: boolean;
+  pagIbigDeductionFixedAmount: string;
+  isPhilHealthEnabled: boolean;
+  philHealthDeductionFixedAmount: string;
+  effectiveFrom: string;
+  effectiveTo: string;
+}
+
+const today = () => new Date().toISOString().split("T")[0];
+const toNumber = (value: string) => Number.parseFloat(value);
+const toDateInput = (value?: string) => (value ? value.slice(0, 10) : "");
+
+function buildInitialForm(profile?: CompensationProfile | null): FormState {
+  if (profile) {
+    return {
+      name: profile.name,
+      profileScope: profile.profileScope,
+      staffId: profile.staffId ?? "",
+      jobPosition: profile.jobPosition,
+      hourlyRate: String(profile.hourlyRate),
+      overtimeRateMultiplier: String(profile.overtimeRateMultiplier),
+      sundayRateMultiplier: String(profile.sundayRateMultiplier),
+      nightDifferentialRateMultiplier: String(
+        profile.nightDifferentialRateMultiplier,
+      ),
+      isRiceAllowanceEligible: profile.isRiceAllowanceEligible,
+      riceAllowanceFixedAmount: String(profile.riceAllowanceFixedAmount),
+      isSssEnabled: profile.isSssEnabled,
+      sssDeductionFixedAmount: String(profile.sssDeductionFixedAmount),
+      isPagIbigEnabled: profile.isPagIbigEnabled,
+      pagIbigDeductionFixedAmount: String(profile.pagIbigDeductionFixedAmount),
+      isPhilHealthEnabled: profile.isPhilHealthEnabled,
+      philHealthDeductionFixedAmount: String(profile.philHealthDeductionFixedAmount),
+      effectiveFrom: toDateInput(profile.effectiveFrom) || today(),
+      effectiveTo: toDateInput(profile.effectiveTo),
+    };
+  }
+
+  return {
+    name: "",
+    profileScope: "position",
+    staffId: "",
+    jobPosition: "",
+    hourlyRate: "",
+    overtimeRateMultiplier: "1.25",
+    sundayRateMultiplier: "1.30",
+    nightDifferentialRateMultiplier: "1.10",
+    isRiceAllowanceEligible: false,
+    riceAllowanceFixedAmount: "0",
+    isSssEnabled: false,
+    sssDeductionFixedAmount: "0",
+    isPagIbigEnabled: false,
+    pagIbigDeductionFixedAmount: "0",
+    isPhilHealthEnabled: false,
+    philHealthDeductionFixedAmount: "0",
+    effectiveFrom: today(),
+    effectiveTo: "",
+  };
+}
+
+export function CompensationProfileDialog({
+  open,
+  onOpenChange,
+  businessId,
+  profile,
+  staffOptions,
+}: CompensationProfileDialogProps) {
+  const [form, setForm] = useState<FormState>(buildInitialForm(profile));
+  const isEditMode = !!profile?._id;
+
+  const { mutate: createProfile, isPending: isCreating } =
+    useCreateCompensationProfile();
+  const { mutate: updateProfile, isPending: isUpdating } =
+    useUpdateCompensationProfile();
+  const isPending = isCreating || isUpdating;
+
+  useEffect(() => {
+    if (open) {
+      setForm(buildInitialForm(profile));
+    }
+  }, [open, profile]);
+
+  const selectedStaff =
+    form.profileScope === "staff"
+      ? staffOptions.find((staff) => staff.id === form.staffId)
+      : undefined;
+
+  const isValid =
+    form.name.trim().length > 0 &&
+    form.jobPosition.trim().length > 0 &&
+    (form.profileScope === "position" || !!form.staffId) &&
+    !Number.isNaN(toNumber(form.hourlyRate)) &&
+    toNumber(form.hourlyRate) > 0 &&
+    !Number.isNaN(toNumber(form.overtimeRateMultiplier)) &&
+    toNumber(form.overtimeRateMultiplier) >= 1 &&
+    !Number.isNaN(toNumber(form.sundayRateMultiplier)) &&
+    toNumber(form.sundayRateMultiplier) >= 1 &&
+    !Number.isNaN(toNumber(form.nightDifferentialRateMultiplier)) &&
+    toNumber(form.nightDifferentialRateMultiplier) >= 1 &&
+    (!form.isRiceAllowanceEligible ||
+      (!Number.isNaN(toNumber(form.riceAllowanceFixedAmount)) &&
+        toNumber(form.riceAllowanceFixedAmount) >= 0)) &&
+    (!form.isSssEnabled ||
+      (!Number.isNaN(toNumber(form.sssDeductionFixedAmount)) &&
+        toNumber(form.sssDeductionFixedAmount) >= 0)) &&
+    (!form.isPagIbigEnabled ||
+      (!Number.isNaN(toNumber(form.pagIbigDeductionFixedAmount)) &&
+        toNumber(form.pagIbigDeductionFixedAmount) >= 0)) &&
+    (!form.isPhilHealthEnabled ||
+      (!Number.isNaN(toNumber(form.philHealthDeductionFixedAmount)) &&
+        toNumber(form.philHealthDeductionFixedAmount) >= 0));
+
+  const createPayload: CreateCompensationProfileRequest = {
+    name: form.name.trim(),
+    businessId,
+    profileScope: form.profileScope,
+    jobPosition: form.jobPosition.trim(),
+    ...(form.profileScope === "staff" && { staffId: form.staffId }),
+    hourlyRate: toNumber(form.hourlyRate),
+    overtimeRateMultiplier: toNumber(form.overtimeRateMultiplier),
+    sundayRateMultiplier: toNumber(form.sundayRateMultiplier),
+    nightDifferentialRateMultiplier: toNumber(form.nightDifferentialRateMultiplier),
+    isRiceAllowanceEligible: form.isRiceAllowanceEligible,
+    riceAllowanceFixedAmount: form.isRiceAllowanceEligible
+      ? toNumber(form.riceAllowanceFixedAmount)
+      : 0,
+    isSssEnabled: form.isSssEnabled,
+    sssDeductionFixedAmount: form.isSssEnabled
+      ? toNumber(form.sssDeductionFixedAmount)
+      : 0,
+    isPagIbigEnabled: form.isPagIbigEnabled,
+    pagIbigDeductionFixedAmount: form.isPagIbigEnabled
+      ? toNumber(form.pagIbigDeductionFixedAmount)
+      : 0,
+    isPhilHealthEnabled: form.isPhilHealthEnabled,
+    philHealthDeductionFixedAmount: form.isPhilHealthEnabled
+      ? toNumber(form.philHealthDeductionFixedAmount)
+      : 0,
+    effectiveFrom: form.effectiveFrom,
+    ...(form.effectiveTo && { effectiveTo: form.effectiveTo }),
+    isActive: true,
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isValid) return;
+
+    if (isEditMode && profile?._id) {
+      const updatePayload: UpdateCompensationProfileRequest = createPayload;
+      updateProfile(
+        {
+          id: profile._id,
+          data: updatePayload,
+        },
+        {
+          onSuccess: () => onOpenChange(false),
+        },
+      );
+      return;
+    }
+
+    createProfile(createPayload, {
+      onSuccess: () => onOpenChange(false),
+    });
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[760px] max-h-[90vh] overflow-y-auto">
+        <form onSubmit={handleSubmit}>
+          <DialogHeader>
+            <DialogTitle>
+              {isEditMode ? "Edit Compensation Profile" : "Create Compensation Profile"}
+            </DialogTitle>
+            <DialogDescription>
+              Manage shared compensation settings for position-level or staff-level payroll configuration.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6 py-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="grid gap-2 sm:col-span-2">
+                <Label htmlFor="profileName">
+                  Profile Name <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="profileName"
+                  value={form.name}
+                  onChange={(e) =>
+                    setForm((prev) => ({ ...prev, name: e.target.value }))
+                  }
+                  placeholder="Warehouse Team Default"
+                  disabled={isPending}
+                  required
+                />
+              </div>
+
+              <div className="grid gap-2">
+                <Label>Profile Scope</Label>
+                <Select
+                  value={form.profileScope}
+                  onValueChange={(value) =>
+                    setForm((prev) => {
+                      const nextScope = value as CompensationProfileScope;
+                      return {
+                        ...prev,
+                        profileScope: nextScope,
+                        staffId: nextScope === "staff" ? prev.staffId : "",
+                      };
+                    })
+                  }
+                  disabled={isPending}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="position">Position</SelectItem>
+                    <SelectItem value="staff">Staff</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid gap-2">
+                <Label>Staff (for staff scope)</Label>
+                <Select
+                  value={form.staffId}
+                  onValueChange={(staffId) =>
+                    setForm((prev) => {
+                      const selected = staffOptions.find((s) => s.id === staffId);
+                      return {
+                        ...prev,
+                        staffId,
+                        jobPosition:
+                          prev.jobPosition || selected?.position || prev.jobPosition,
+                      };
+                    })
+                  }
+                  disabled={isPending || form.profileScope !== "staff"}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select staff" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {staffOptions.map((staff) => (
+                      <SelectItem key={staff.id} value={staff.id}>
+                        {staff.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {selectedStaff && (
+                  <p className="text-xs text-muted-foreground">
+                    Selected: {selectedStaff.label}
+                  </p>
+                )}
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="jobPosition">
+                  Job Position <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="jobPosition"
+                  value={form.jobPosition}
+                  onChange={(e) =>
+                    setForm((prev) => ({ ...prev, jobPosition: e.target.value }))
+                  }
+                  placeholder="Warehouse Associate"
+                  disabled={isPending}
+                  required
+                />
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="hourlyRate">
+                  Hourly Rate <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="hourlyRate"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={form.hourlyRate}
+                  onChange={(e) =>
+                    setForm((prev) => ({ ...prev, hourlyRate: e.target.value }))
+                  }
+                  placeholder="0.00"
+                  disabled={isPending}
+                  required
+                />
+              </div>
+            </div>
+
+            <Separator />
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <div className="grid gap-2">
+                <Label htmlFor="overtimeRateMultiplier">OT Multiplier</Label>
+                <Input
+                  id="overtimeRateMultiplier"
+                  type="number"
+                  min="1"
+                  step="0.01"
+                  value={form.overtimeRateMultiplier}
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      overtimeRateMultiplier: e.target.value,
+                    }))
+                  }
+                  disabled={isPending}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="sundayRateMultiplier">Sunday Multiplier</Label>
+                <Input
+                  id="sundayRateMultiplier"
+                  type="number"
+                  min="1"
+                  step="0.01"
+                  value={form.sundayRateMultiplier}
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      sundayRateMultiplier: e.target.value,
+                    }))
+                  }
+                  disabled={isPending}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="nightDiffMultiplier">Night Diff Multiplier</Label>
+                <Input
+                  id="nightDiffMultiplier"
+                  type="number"
+                  min="1"
+                  step="0.01"
+                  value={form.nightDifferentialRateMultiplier}
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      nightDifferentialRateMultiplier: e.target.value,
+                    }))
+                  }
+                  disabled={isPending}
+                />
+              </div>
+            </div>
+
+            <Separator />
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="flex items-center justify-between rounded-md border p-3">
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">Rice Allowance</p>
+                  <p className="text-xs text-muted-foreground">
+                    Always included when eligible.
+                  </p>
+                </div>
+                <Switch
+                  checked={form.isRiceAllowanceEligible}
+                  onCheckedChange={(checked) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      isRiceAllowanceEligible: checked,
+                    }))
+                  }
+                  disabled={isPending}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="riceAllowanceAmount">Rice Allowance Amount</Label>
+                <Input
+                  id="riceAllowanceAmount"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={form.riceAllowanceFixedAmount}
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      riceAllowanceFixedAmount: e.target.value,
+                    }))
+                  }
+                  disabled={isPending || !form.isRiceAllowanceEligible}
+                />
+              </div>
+            </div>
+
+            <Separator />
+
+            <div className="space-y-3">
+              <p className="text-sm font-medium">Statutory Deductions</p>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <div className="space-y-2 rounded-md border p-3">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="sssToggle">SSS</Label>
+                    <Switch
+                      id="sssToggle"
+                      checked={form.isSssEnabled}
+                      onCheckedChange={(checked) =>
+                        setForm((prev) => ({ ...prev, isSssEnabled: checked }))
+                      }
+                      disabled={isPending}
+                    />
+                  </div>
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={form.sssDeductionFixedAmount}
+                    onChange={(e) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        sssDeductionFixedAmount: e.target.value,
+                      }))
+                    }
+                    disabled={isPending || !form.isSssEnabled}
+                  />
+                </div>
+                <div className="space-y-2 rounded-md border p-3">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="pagIbigToggle">Pag-IBIG</Label>
+                    <Switch
+                      id="pagIbigToggle"
+                      checked={form.isPagIbigEnabled}
+                      onCheckedChange={(checked) =>
+                        setForm((prev) => ({
+                          ...prev,
+                          isPagIbigEnabled: checked,
+                        }))
+                      }
+                      disabled={isPending}
+                    />
+                  </div>
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={form.pagIbigDeductionFixedAmount}
+                    onChange={(e) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        pagIbigDeductionFixedAmount: e.target.value,
+                      }))
+                    }
+                    disabled={isPending || !form.isPagIbigEnabled}
+                  />
+                </div>
+                <div className="space-y-2 rounded-md border p-3">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="philHealthToggle">PhilHealth</Label>
+                    <Switch
+                      id="philHealthToggle"
+                      checked={form.isPhilHealthEnabled}
+                      onCheckedChange={(checked) =>
+                        setForm((prev) => ({
+                          ...prev,
+                          isPhilHealthEnabled: checked,
+                        }))
+                      }
+                      disabled={isPending}
+                    />
+                  </div>
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={form.philHealthDeductionFixedAmount}
+                    onChange={(e) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        philHealthDeductionFixedAmount: e.target.value,
+                      }))
+                    }
+                    disabled={isPending || !form.isPhilHealthEnabled}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <Separator />
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="grid gap-2">
+                <Label htmlFor="effectiveFrom">Effective From</Label>
+                <Input
+                  id="effectiveFrom"
+                  type="date"
+                  value={form.effectiveFrom}
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      effectiveFrom: e.target.value,
+                    }))
+                  }
+                  disabled={isPending}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="effectiveTo">Effective To (Optional)</Label>
+                <Input
+                  id="effectiveTo"
+                  type="date"
+                  value={form.effectiveTo}
+                  onChange={(e) =>
+                    setForm((prev) => ({ ...prev, effectiveTo: e.target.value }))
+                  }
+                  disabled={isPending}
+                />
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={isPending}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" disabled={!isValid || isPending}>
+              {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isEditMode ? "Update Profile" : "Create Profile"}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+

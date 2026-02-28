@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   ArrowLeft,
@@ -55,6 +55,7 @@ import {
   useUploadStaffPhoto,
   useUploadStaffDocument,
 } from "@/hooks/useStaff";
+import { useCompensationProfiles } from "@/hooks/useCompensationProfile";
 import type { UpdateStaffRequest } from "@/types/staff.types";
 
 const statusConfig = {
@@ -94,6 +95,7 @@ export default function StaffDetailPage() {
   const staffId = params.staffId as string;
 
   const [isEditing, setIsEditing] = useState(false);
+  const [selectedLinkProfileId, setSelectedLinkProfileId] = useState("");
   const [form, setForm] = useState<UpdateStaffRequest>({});
   const photoInputRef = useRef<HTMLInputElement>(null);
   const docInputRef = useRef<HTMLInputElement>(null);
@@ -105,6 +107,31 @@ export default function StaffDetailPage() {
     useUploadStaffPhoto();
   const { mutate: uploadDocument, isPending: isUploadingDoc } =
     useUploadStaffDocument();
+  const { data: compensationProfiles, isLoading: isCompensationLoading } =
+    useCompensationProfiles({
+      businessId,
+      isActive: true,
+    });
+
+  useEffect(() => {
+    if (!staff) {
+      setSelectedLinkProfileId("");
+      return;
+    }
+
+    const profiles = compensationProfiles ?? [];
+    const linked =
+      profiles.find((profile) => profile._id === staff.compensationProfileId) ??
+      null;
+    const own =
+      profiles.find(
+        (profile) => profile.profileScope === "staff" && profile.staffId === staffId,
+      ) ?? null;
+
+    setSelectedLinkProfileId(
+      staff.compensationProfileId ?? linked?._id ?? own?._id ?? "",
+    );
+  }, [staff, compensationProfiles, staffId]);
 
   const handleEditToggle = () => {
     if (!staff) return;
@@ -117,7 +144,6 @@ export default function StaffDetailPage() {
       department: staff.department ?? "",
       dateHired: staff.dateHired,
       salary: staff.salary,
-      salaryType: staff.salaryType,
       employmentType: staff.employmentType,
       status: staff.status,
       notes: staff.notes ?? "",
@@ -131,8 +157,12 @@ export default function StaffDetailPage() {
   };
 
   const handleSave = () => {
+    const payload: UpdateStaffRequest = {
+      ...form,
+      salaryType: "hourly",
+    };
     updateStaff(
-      { id: staffId, data: form },
+      { id: staffId, data: payload },
       { onSuccess: () => setIsEditing(false) },
     );
   };
@@ -188,6 +218,26 @@ export default function StaffDetailPage() {
     (isEditing ? form.employmentType : staff.employmentType) ??
     staff.employmentType;
   const empCfg = employmentTypeConfig[empType];
+  const allCompensationProfiles = compensationProfiles ?? [];
+  const linkedCompensationProfile =
+    allCompensationProfiles.find(
+      (profile) => profile._id === staff.compensationProfileId,
+    ) ?? null;
+  const ownStaffProfile =
+    allCompensationProfiles.find(
+      (profile) => profile.profileScope === "staff" && profile.staffId === staffId,
+    ) ?? null;
+  const activeCompensationProfile =
+    linkedCompensationProfile ?? ownStaffProfile ?? null;
+
+  const handleLinkCompensationProfile = () => {
+    if (!selectedLinkProfileId) return;
+    const payload: UpdateStaffRequest = {
+      compensationProfileId: selectedLinkProfileId,
+      salaryType: "hourly",
+    };
+    updateStaff({ id: staffId, data: payload });
+  };
 
   return (
     <div className="space-y-6">
@@ -393,10 +443,7 @@ export default function StaffDetailPage() {
                 {staff.salary != null && (
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <DollarSign className="h-4 w-4 shrink-0" />
-                    <span>
-                      {staff.salary.toLocaleString()} /{" "}
-                      {staff.salaryType ?? "monthly"}
-                    </span>
+                    <span>{staff.salary.toLocaleString()} / hour</span>
                   </div>
                 )}
               </div>
@@ -571,7 +618,9 @@ export default function StaffDetailPage() {
                 )}
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs text-muted-foreground">Salary</Label>
+                <Label className="text-xs text-muted-foreground">
+                  Hourly Rate
+                </Label>
                 {isEditing ? (
                   <Input
                     type="number"
@@ -594,34 +643,161 @@ export default function StaffDetailPage() {
               </div>
               <div className="space-y-1.5">
                 <Label className="text-xs text-muted-foreground">
-                  Salary Type
+                  Compensation Model
                 </Label>
-                {isEditing ? (
-                  <Select
-                    value={form.salaryType ?? ""}
-                    onValueChange={(v) =>
-                      setForm((f) => ({
-                        ...f,
-                        salaryType: v as UpdateStaffRequest["salaryType"],
-                      }))
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="hourly">Hourly</SelectItem>
-                      <SelectItem value="daily">Daily</SelectItem>
-                      <SelectItem value="monthly">Monthly</SelectItem>
-                      <SelectItem value="annual">Annual</SelectItem>
-                    </SelectContent>
-                  </Select>
-                ) : (
-                  <p className="text-sm font-medium capitalize">
-                    {staff.salaryType ?? "—"}
-                  </p>
-                )}
+                <p className="text-sm font-medium">Hourly</p>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Compensation Profile */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                <DollarSign className="h-4 w-4" />
+                Compensation Profile
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {isCompensationLoading ? (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Loading compensation profile...
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_auto]">
+                    <Select
+                      value={selectedLinkProfileId}
+                      onValueChange={setSelectedLinkProfileId}
+                      disabled={isUpdating || allCompensationProfiles.length === 0}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select an existing compensation profile" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {allCompensationProfiles.map((profile) => (
+                          <SelectItem key={profile._id} value={profile._id}>
+                            {profile.name} ({profile.profileScope})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      variant="outline"
+                      onClick={handleLinkCompensationProfile}
+                      disabled={
+                        !selectedLinkProfileId ||
+                        selectedLinkProfileId === staff.compensationProfileId ||
+                        isUpdating ||
+                        allCompensationProfiles.length === 0
+                      }
+                    >
+                      Link Profile
+                    </Button>
+                  </div>
+
+                  {allCompensationProfiles.length === 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      No existing profiles available yet. Create one first, then
+                      you can link it to multiple staff.
+                    </p>
+                  )}
+
+                  {activeCompensationProfile ? (
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                      <div className="space-y-1.5">
+                        <Label className="text-xs text-muted-foreground">
+                          Link Mode
+                        </Label>
+                        <p className="text-sm font-medium">
+                          {staff.compensationProfileId
+                            ? "Linked to shared profile"
+                            : "Using own/default profile"}
+                        </p>
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs text-muted-foreground">
+                          Profile Scope
+                        </Label>
+                        <p className="text-sm font-medium capitalize">
+                          {activeCompensationProfile.profileScope}
+                        </p>
+                      </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-muted-foreground">
+                      Profile Name
+                    </Label>
+                    <p className="text-sm font-medium">
+                      {activeCompensationProfile.name}
+                    </p>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-muted-foreground">
+                      Effective From
+                    </Label>
+                    <p className="text-sm font-medium">
+                      {activeCompensationProfile.effectiveFrom}
+                    </p>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-muted-foreground">
+                      Hourly Rate
+                    </Label>
+                    <p className="text-sm font-medium">
+                      {activeCompensationProfile.hourlyRate.toLocaleString()}
+                    </p>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-muted-foreground">
+                      OT / Sunday / Night Diff
+                    </Label>
+                    <p className="text-sm font-medium">
+                      {activeCompensationProfile.overtimeRateMultiplier}x /{" "}
+                      {activeCompensationProfile.sundayRateMultiplier}x /{" "}
+                      {activeCompensationProfile.nightDifferentialRateMultiplier}
+                      x
+                    </p>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-muted-foreground">
+                      Rice Allowance
+                    </Label>
+                    <p className="text-sm font-medium">
+                      {activeCompensationProfile.isRiceAllowanceEligible
+                        ? activeCompensationProfile.riceAllowanceFixedAmount.toLocaleString()
+                        : "Not eligible"}
+                    </p>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-muted-foreground">
+                      Statutory Deductions
+                    </Label>
+                    <p className="text-sm font-medium">
+                      SSS:{" "}
+                      {activeCompensationProfile.isSssEnabled
+                        ? activeCompensationProfile.sssDeductionFixedAmount.toLocaleString()
+                        : "Off"}{" "}
+                      | Pag-IBIG:{" "}
+                      {activeCompensationProfile.isPagIbigEnabled
+                        ? activeCompensationProfile.pagIbigDeductionFixedAmount.toLocaleString()
+                        : "Off"}{" "}
+                      | PhilHealth:{" "}
+                      {activeCompensationProfile.isPhilHealthEnabled
+                        ? activeCompensationProfile.philHealthDeductionFixedAmount.toLocaleString()
+                        : "Off"}
+                    </p>
+                  </div>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      No staff compensation profile yet. Link an existing
+                      profile above, or create/manage profiles on the
+                      compensation profile page.
+                    </p>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -730,6 +906,8 @@ export default function StaffDetailPage() {
           </Card>
         </div>
       </div>
+
     </div>
   );
 }
+

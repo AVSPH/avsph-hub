@@ -13,13 +13,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
 import { useHireApplicant } from "@/hooks/useJobPost";
 import type { Applicant } from "@/types/jobPost.types";
 
@@ -31,13 +24,11 @@ interface HireDialogProps {
 
 export function HireDialog({ open, onOpenChange, applicant }: HireDialogProps) {
     const [salary, setSalary] = useState("");
-    const [salaryType, setSalaryType] = useState<string>("monthly");
     const { mutate: hire, isPending } = useHireApplicant();
 
     const handleOpenChange = (newOpen: boolean) => {
         if (!newOpen) {
             setSalary("");
-            setSalaryType("monthly");
         }
         onOpenChange(newOpen);
     };
@@ -51,7 +42,7 @@ export function HireDialog({ open, onOpenChange, applicant }: HireDialogProps) {
                 id: applicant._id,
                 data: {
                     salary: parseFloat(salary),
-                    salaryType: salaryType as "hourly" | "daily" | "monthly" | "annual",
+                    salaryType: "hourly",
                 },
             },
             {
@@ -62,7 +53,7 @@ export function HireDialog({ open, onOpenChange, applicant }: HireDialogProps) {
         );
     };
 
-    const isValid = salary && parseFloat(salary) > 0 && salaryType;
+    const isValid = salary && parseFloat(salary) > 0;
 
     return (
         <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -115,27 +106,9 @@ export function HireDialog({ open, onOpenChange, applicant }: HireDialogProps) {
                             </div>
                         </div>
 
-                        {/* Salary Type */}
-                        <div className="grid gap-2">
-                            <Label>
-                                Salary Type <span className="text-destructive">*</span>
-                            </Label>
-                            <Select
-                                value={salaryType}
-                                onValueChange={setSalaryType}
-                                disabled={isPending}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="hourly">Hourly</SelectItem>
-                                    <SelectItem value="daily">Daily</SelectItem>
-                                    <SelectItem value="monthly">Monthly</SelectItem>
-                                    <SelectItem value="annual">Annual</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
+                        <p className="text-xs text-muted-foreground">
+                            Compensation model is fixed to hourly.
+                        </p>
                     </div>
 
                     <DialogFooter>

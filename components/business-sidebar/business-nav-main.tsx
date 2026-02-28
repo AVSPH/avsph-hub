@@ -7,6 +7,7 @@ import {
   FileText,
   Users,
   Briefcase,
+  Wallet,
   Settings,
   type LucideIcon,
 } from "lucide-react";
@@ -62,6 +63,11 @@ export function BusinessNavMain({ businessId }: BusinessNavMainProps) {
       title: "Invoices",
       href: `/business/${businessId}/invoice`,
       icon: FileText,
+    },
+    {
+      title: "Compensation",
+      href: `/business/${businessId}/compensation-profiles`,
+      icon: Wallet,
     },
     {
       title: "Settings",

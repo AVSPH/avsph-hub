@@ -15,6 +15,7 @@ export interface Staff {
   dateHired: string;
   salary?: number;
   salaryType?: "hourly" | "daily" | "monthly" | "annual";
+  compensationProfileId?: string;
   employmentType: "full-time" | "part-time" | "contract";
   businessId: string;
   status: "active" | "on_leave" | "terminated";
@@ -71,8 +72,9 @@ export interface CreateStaffRequest {
   position: string;
   department?: string;
   dateHired: string;
-  salary?: number;
-  salaryType?: "hourly" | "daily" | "monthly" | "annual";
+  salary: number;
+  salaryType: "hourly";
+  compensationProfileId?: string;
   employmentType?: "full-time" | "part-time" | "contract";
   businessId: string;
 }
@@ -87,7 +89,8 @@ export interface UpdateStaffRequest {
   department?: string;
   dateHired?: string;
   salary?: number;
-  salaryType?: "hourly" | "daily" | "monthly" | "annual";
+  salaryType?: "hourly";
+  compensationProfileId?: string;
   employmentType?: "full-time" | "part-time" | "contract";
   status?: "active" | "on_leave" | "terminated";
   notes?: string;

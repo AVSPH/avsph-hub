@@ -32,12 +32,13 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { useCreateStaff } from "@/hooks/useStaff";
-import type { CreateStaffRequest } from "@/types/staff.types";
+import type { CreateStaffRequest, Staff } from "@/types/staff.types";
 
 interface CreateStaffDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   businessId: string;
+  onCreated?: (staff: Staff) => void;
 }
 
 const initialForm = {
@@ -50,7 +51,6 @@ const initialForm = {
   department: "",
   dateHired: new Date().toISOString().split("T")[0],
   salary: "",
-  salaryType: "" as string,
   employmentType: "" as string,
 };
 
@@ -58,6 +58,7 @@ export function CreateStaffDialog({
   open,
   onOpenChange,
   businessId,
+  onCreated,
 }: CreateStaffDialogProps) {
   const [form, setForm] = useState(initialForm);
   const { mutate: createStaff, isPending } = useCreateStaff();
@@ -88,10 +89,8 @@ export function CreateStaffDialog({
       businessId,
       ...(form.phone && { phone: form.phone.trim() }),
       ...(form.department && { department: form.department.trim() }),
-      ...(form.salary && { salary: parseFloat(form.salary) }),
-      ...(form.salaryType && {
-        salaryType: form.salaryType as CreateStaffRequest["salaryType"],
-      }),
+      salary: parseFloat(form.salary),
+      salaryType: "hourly",
       ...(form.employmentType && {
         employmentType:
           form.employmentType as CreateStaffRequest["employmentType"],
@@ -99,9 +98,10 @@ export function CreateStaffDialog({
     };
 
     createStaff(payload, {
-      onSuccess: () => {
+      onSuccess: (newStaff) => {
         resetForm();
         onOpenChange(false);
+        onCreated?.(newStaff);
       },
     });
   };
@@ -112,7 +112,10 @@ export function CreateStaffDialog({
     form.email.trim() &&
     form.password.length >= 6 &&
     form.position.trim() &&
-    form.dateHired;
+    form.dateHired &&
+    form.salary.trim() &&
+    !Number.isNaN(parseFloat(form.salary)) &&
+    parseFloat(form.salary) >= 0;
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -325,46 +328,30 @@ export function CreateStaffDialog({
                   </div>
                 </div>
 
-                {/* Salary & Salary Type */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="salary">Salary</Label>
-                    <div className="relative">
-                      <DollarSign className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                      <Input
-                        id="salary"
-                        name="salary"
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        placeholder="0.00"
-                        value={form.salary}
-                        onChange={handleChange}
-                        disabled={isPending}
-                        className="pl-9"
-                      />
-                    </div>
-                  </div>
-                  <div className="grid gap-2">
-                    <Label>Salary Type</Label>
-                    <Select
-                      value={form.salaryType}
-                      onValueChange={(value) =>
-                        setForm((prev) => ({ ...prev, salaryType: value }))
-                      }
+                {/* Hourly Rate */}
+                <div className="grid gap-2">
+                  <Label htmlFor="salary">
+                    Hourly Rate <span className="text-destructive">*</span>
+                  </Label>
+                  <div className="relative">
+                    <DollarSign className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      id="salary"
+                      name="salary"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      placeholder="0.00"
+                      value={form.salary}
+                      onChange={handleChange}
                       disabled={isPending}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="hourly">Hourly</SelectItem>
-                        <SelectItem value="daily">Daily</SelectItem>
-                        <SelectItem value="monthly">Monthly</SelectItem>
-                        <SelectItem value="annual">Annual</SelectItem>
-                      </SelectContent>
-                    </Select>
+                      className="pl-9"
+                      required
+                    />
                   </div>
+                  <p className="text-xs text-muted-foreground">
+                    Payroll uses hourly-only computation for all staff.
+                  </p>
                 </div>
               </div>
             </div>

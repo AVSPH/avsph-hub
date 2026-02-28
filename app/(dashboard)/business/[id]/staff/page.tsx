@@ -73,7 +73,9 @@ export default function StaffPage() {
     [router, businessId],
   );
 
-  const columns = createColumns({ onView: handleRowClick });
+  const columns = createColumns({
+    onView: handleRowClick,
+  });
 
   // Loading state
   if (isBusinessLoading) {

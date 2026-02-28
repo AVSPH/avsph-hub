@@ -48,6 +48,8 @@ export function BusinessSwitcher({
       router.push(`/business/${newBusinessId}/blog`);
     } else if (pathname.includes("/settings")) {
       router.push(`/business/${newBusinessId}/settings`);
+    } else if (pathname.includes("/compensation-profiles")) {
+      router.push(`/business/${newBusinessId}/compensation-profiles`);
     } else if (pathname.includes("/staff")) {
       router.push(`/business/${newBusinessId}/staff`);
     } else {
