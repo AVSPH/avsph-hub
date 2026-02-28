@@ -1,0 +1,603 @@
+"use client";
+
+import { useParams, useRouter } from "next/navigation";
+import {
+    ArrowLeft,
+    Loader2,
+    FileText,
+    DollarSign,
+    Clock,
+    Calendar,
+    User,
+    Mail,
+    Briefcase,
+    ClipboardList,
+    BadgeCheck,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
+import { useMyInvoiceById } from "@/hooks/invoice/useStaffInvoice";
+
+// ============ Helpers ============
+
+const statusConfig: Record<
+    string,
+    { label: string; className: string; icon: React.ReactNode }
+> = {
+    draft: {
+        label: "Draft",
+        className: "bg-slate-500/10 text-slate-500 border-slate-500/20",
+        icon: <FileText className="h-3.5 w-3.5" />,
+    },
+    calculated: {
+        label: "Calculated",
+        className: "bg-blue-500/10 text-blue-500 border-blue-500/20",
+        icon: <ClipboardList className="h-3.5 w-3.5" />,
+    },
+    approved: {
+        label: "Approved",
+        className: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
+        icon: <BadgeCheck className="h-3.5 w-3.5" />,
+    },
+    paid: {
+        label: "Paid",
+        className: "bg-purple-500/10 text-purple-500 border-purple-500/20",
+        icon: <DollarSign className="h-3.5 w-3.5" />,
+    },
+};
+
+function fmt(amount: number) {
+    return new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "USD",
+    }).format(amount);
+}
+
+function fmtDate(dateStr: string) {
+    return new Date(dateStr).toLocaleDateString("en-US", {
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+    });
+}
+
+function fmtShortDate(dateStr: string) {
+    return new Date(dateStr).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+    });
+}
+
+function fmtPeriod(start: string, end: string) {
+    const s = new Date(start);
+    const e = new Date(end);
+    const opts: Intl.DateTimeFormatOptions = { month: "long", day: "numeric" };
+    const yearOpts: Intl.DateTimeFormatOptions = {
+        ...opts,
+        year: "numeric",
+    };
+    if (s.getFullYear() === e.getFullYear()) {
+        return `${s.toLocaleDateString("en-US", opts)} – ${e.toLocaleDateString("en-US", yearOpts)}`;
+    }
+    return `${s.toLocaleDateString("en-US", yearOpts)} – ${e.toLocaleDateString("en-US", yearOpts)}`;
+}
+
+const salaryTypeLabels: Record<string, string> = {
+    hourly: "Hourly",
+    daily: "Daily",
+    monthly: "Monthly",
+    annual: "Annual",
+};
+
+const STATUTORY_TYPES = new Set(["SSS", "Pag-IBIG", "PhilHealth"]);
+
+// ============ Page ============
+
+export default function StaffInvoiceDetailPage() {
+    const router = useRouter();
+    const params = useParams();
+    const invoiceId = params.invoiceId as string;
+
+    const { data: invoice, isLoading, isError } = useMyInvoiceById(invoiceId);
+
+    // Loading
+    if (isLoading) {
+        return (
+            <div className="flex min-h-[400px] items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+        );
+    }
+
+    // Error / Not Found
+    if (isError || !invoice) {
+        return (
+            <div className="flex min-h-[400px] flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center bg-card">
+                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-destructive/10">
+                    <FileText className="h-10 w-10 text-destructive" />
+                </div>
+                <h3 className="mt-4 text-xl font-semibold">Invoice Not Found</h3>
+                <p className="mt-2 text-sm text-muted-foreground">
+                    The invoice could not be loaded or you do not have permission to view it.
+                </p>
+                <Button
+                    variant="outline"
+                    className="mt-4"
+                    onClick={() => router.push(`/invoice`)}
+                >
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Back to My Invoices
+                </Button>
+            </div>
+        );
+    }
+
+    const status = statusConfig[invoice.status] || statusConfig.draft;
+    const staffFullName =
+        invoice.staffName ||
+        (invoice.staff
+            ? `${invoice.staff.firstName} ${invoice.staff.lastName}`
+            : "Unknown Staff");
+    const staffEmail = invoice.staffEmail || invoice.staff?.email || "—";
+    const staffPosition = invoice.staffPosition || invoice.staff?.position || "—";
+
+    const manualDeductions = invoice.deductions.filter(
+        (d) => !STATUTORY_TYPES.has(d.type),
+    );
+    const totalStatutoryDeductions =
+        (invoice.statutoryDeductions?.sss || 0) +
+        (invoice.statutoryDeductions?.pagIbig || 0) +
+        (invoice.statutoryDeductions?.philHealth || 0);
+    const totalManualDeductions = manualDeductions.reduce(
+        (sum, d) => sum + d.amount,
+        0,
+    );
+    const totalAdditions = invoice.additions.reduce(
+        (sum, a) => sum + a.amount,
+        0,
+    );
+
+    return (
+        <div className="space-y-6">
+            {/* Top Bar */}
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between px-2">
+                <div className="flex items-center gap-3">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => router.push(`/invoice`)}
+                    >
+                        <ArrowLeft className="h-5 w-5" />
+                    </Button>
+                    <div className="mt-6 lg:mt-0">
+                        <h1 className="text-2xl font-semibold tracking-tight">
+                            Invoice Details
+                        </h1>
+                        <p className="text-sm text-muted-foreground">
+                            {fmtPeriod(invoice.periodStart, invoice.periodEnd)}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            {/* ===== PAYSLIP CARD ===== */}
+            <Card className="overflow-hidden">
+                {/* Header stripe */}
+                <div className="bg-primary px-6 py-4 text-primary-foreground">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-xs font-medium uppercase tracking-wider opacity-80">
+                                Pay Statement
+                            </p>
+                            <h2 className="mt-1 text-lg font-semibold">
+                                {fmtPeriod(invoice.periodStart, invoice.periodEnd)}
+                            </h2>
+                        </div>
+                        <div className="text-right">
+                            <Badge
+                                variant="outline"
+                                className={`border-primary-foreground/30 text-primary-foreground ${status.className} bg-white/10`}
+                            >
+                                {status.icon}
+                                <span className="ml-1">{status.label}</span>
+                            </Badge>
+                            <p className="mt-1.5 text-xs opacity-70">
+                                Generated {fmtShortDate(invoice.createdAt)}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <CardContent className="p-6">
+                    {/* Staff Info Row */}
+                    <div className="grid gap-6 sm:grid-cols-2">
+                        <div className="space-y-3">
+                            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                                Employee
+                            </p>
+                            <div className="space-y-1.5">
+                                <div className="flex items-center gap-2">
+                                    <User className="h-4 w-4 text-muted-foreground" />
+                                    <span className="font-medium">{staffFullName}</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <Mail className="h-4 w-4 text-muted-foreground" />
+                                    <span className="text-sm text-muted-foreground">
+                                        {staffEmail}
+                                    </span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <Briefcase className="h-4 w-4 text-muted-foreground" />
+                                    <span className="text-sm text-muted-foreground">
+                                        {staffPosition}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="space-y-3">
+                            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                                Pay Details
+                            </p>
+                            <div className="space-y-1.5">
+                                <div className="flex items-center gap-2">
+                                    <DollarSign className="h-4 w-4 text-muted-foreground" />
+                                    <span className="text-sm">
+                                        {fmt(invoice.baseSalary)}{" "}
+                                        <span className="text-muted-foreground">
+                                            /{" "}
+                                            {salaryTypeLabels[invoice.salaryType]?.toLowerCase() ||
+                                                invoice.salaryType}
+                                        </span>
+                                    </span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <Clock className="h-4 w-4 text-muted-foreground" />
+                                    <span className="text-sm">
+                                        {invoice.totalHoursWorked.toFixed(1)} hours worked
+                                    </span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                                    <span className="text-sm">
+                                        {invoice.totalDaysWorked} days worked
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <Separator className="my-6" />
+
+                    {/* Earnings Breakdown */}
+                    <div className="space-y-4">
+                        <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                            Earnings Summary
+                        </p>
+
+                        <div className="rounded-lg border">
+                            <Table>
+                                <TableBody>
+                                    <TableRow className="hover:bg-transparent">
+                                        <TableCell className="font-medium">
+                                            Regular Earnings
+                                        </TableCell>
+                                        <TableCell className="text-right tabular-nums">
+                                            {fmt(invoice.earningsBreakdown?.regularEarnings || 0)}
+                                        </TableCell>
+                                    </TableRow>
+                                    <TableRow className="hover:bg-transparent">
+                                        <TableCell className="font-medium">
+                                            Overtime Earnings
+                                        </TableCell>
+                                        <TableCell className="text-right tabular-nums">
+                                            {fmt(invoice.earningsBreakdown?.overtimeEarnings || 0)}
+                                        </TableCell>
+                                    </TableRow>
+                                    <TableRow className="hover:bg-transparent">
+                                        <TableCell className="font-medium">
+                                            Sunday Premium Earnings
+                                        </TableCell>
+                                        <TableCell className="text-right tabular-nums">
+                                            {fmt(invoice.earningsBreakdown?.sundayPremiumEarnings || 0)}
+                                        </TableCell>
+                                    </TableRow>
+                                    <TableRow className="hover:bg-transparent">
+                                        <TableCell className="font-medium">
+                                            Night Differential Earnings
+                                        </TableCell>
+                                        <TableCell className="text-right tabular-nums">
+                                            {fmt(invoice.earningsBreakdown?.nightDifferentialEarnings || 0)}
+                                        </TableCell>
+                                    </TableRow>
+                                    <TableRow className="hover:bg-transparent">
+                                        <TableCell className="font-medium">
+                                            Rice Allowance
+                                        </TableCell>
+                                        <TableCell className="text-right tabular-nums">
+                                            {fmt(invoice.earningsBreakdown?.riceAllowanceEarnings || 0)}
+                                        </TableCell>
+                                    </TableRow>
+                                    <TableRow className="hover:bg-transparent bg-muted/30">
+                                        <TableCell className="font-medium">
+                                            Calculated Pay
+                                        </TableCell>
+                                        <TableCell className="text-right tabular-nums">
+                                            {fmt(invoice.calculatedPay)}
+                                        </TableCell>
+                                    </TableRow>
+
+                                    {/* Statutory Deductions */}
+                                    <TableRow className="hover:bg-transparent bg-red-500/5">
+                                        <TableCell
+                                            colSpan={2}
+                                            className="text-xs font-medium uppercase text-red-600"
+                                        >
+                                            Statutory Deductions
+                                        </TableCell>
+                                    </TableRow>
+                                    <TableRow className="hover:bg-transparent">
+                                        <TableCell className="pl-8 text-sm text-muted-foreground">
+                                            SSS
+                                        </TableCell>
+                                        <TableCell className="text-right tabular-nums text-red-600">
+                                            -{fmt(invoice.statutoryDeductions?.sss || 0)}
+                                        </TableCell>
+                                    </TableRow>
+                                    <TableRow className="hover:bg-transparent">
+                                        <TableCell className="pl-8 text-sm text-muted-foreground">
+                                            Pag-IBIG
+                                        </TableCell>
+                                        <TableCell className="text-right tabular-nums text-red-600">
+                                            -{fmt(invoice.statutoryDeductions?.pagIbig || 0)}
+                                        </TableCell>
+                                    </TableRow>
+                                    <TableRow className="hover:bg-transparent">
+                                        <TableCell className="pl-8 text-sm text-muted-foreground">
+                                            PhilHealth
+                                        </TableCell>
+                                        <TableCell className="text-right tabular-nums text-red-600">
+                                            -{fmt(invoice.statutoryDeductions?.philHealth || 0)}
+                                        </TableCell>
+                                    </TableRow>
+                                    <TableRow className="hover:bg-transparent">
+                                        <TableCell className="pl-8 text-sm font-medium">
+                                            Total Statutory Deductions
+                                        </TableCell>
+                                        <TableCell className="text-right tabular-nums font-medium text-red-600">
+                                            -{fmt(totalStatutoryDeductions)}
+                                        </TableCell>
+                                    </TableRow>
+
+                                    {/* Additions */}
+                                    {invoice.additions.length > 0 && (
+                                        <>
+                                            <TableRow className="hover:bg-transparent bg-emerald-500/5">
+                                                <TableCell
+                                                    colSpan={2}
+                                                    className="text-xs font-medium uppercase text-emerald-600"
+                                                >
+                                                    Additions
+                                                </TableCell>
+                                            </TableRow>
+                                            {invoice.additions.map((a, i) => (
+                                                <TableRow
+                                                    key={`add-${i}`}
+                                                    className="hover:bg-transparent"
+                                                >
+                                                    <TableCell className="pl-8 text-sm text-muted-foreground">
+                                                        {a.type}
+                                                        {a.description && (
+                                                            <span className="ml-1 text-xs">
+                                                                — {a.description}
+                                                            </span>
+                                                        )}
+                                                    </TableCell>
+                                                    <TableCell className="text-right tabular-nums text-emerald-600">
+                                                        +{fmt(a.amount)}
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                            <TableRow className="hover:bg-transparent">
+                                                <TableCell className="pl-8 text-sm font-medium">
+                                                    Total Additions
+                                                </TableCell>
+                                                <TableCell className="text-right tabular-nums font-medium text-emerald-600">
+                                                    +{fmt(totalAdditions)}
+                                                </TableCell>
+                                            </TableRow>
+                                        </>
+                                    )}
+
+                                    {/* Deductions */}
+                                    {manualDeductions.length > 0 && (
+                                        <>
+                                            <TableRow className="hover:bg-transparent bg-red-500/5">
+                                                <TableCell
+                                                    colSpan={2}
+                                                    className="text-xs font-medium uppercase text-red-600"
+                                                >
+                                                    Deductions
+                                                </TableCell>
+                                            </TableRow>
+                                            {manualDeductions.map((d, i) => (
+                                                <TableRow
+                                                    key={`ded-${i}`}
+                                                    className="hover:bg-transparent"
+                                                >
+                                                    <TableCell className="pl-8 text-sm text-muted-foreground">
+                                                        {d.type}
+                                                        {d.description && (
+                                                            <span className="ml-1 text-xs">
+                                                                — {d.description}
+                                                            </span>
+                                                        )}
+                                                    </TableCell>
+                                                    <TableCell className="text-right tabular-nums text-red-600">
+                                                        -{fmt(d.amount)}
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                            <TableRow className="hover:bg-transparent">
+                                                <TableCell className="pl-8 text-sm font-medium">
+                                                    Total Manual Deductions
+                                                </TableCell>
+                                                <TableCell className="text-right tabular-nums font-medium text-red-600">
+                                                    -{fmt(totalManualDeductions)}
+                                                </TableCell>
+                                            </TableRow>
+                                        </>
+                                    )}
+
+                                    {/* Net Pay */}
+                                    <TableRow className="hover:bg-transparent bg-muted/50 border-t-2">
+                                        <TableCell className="text-base font-semibold">
+                                            Net Pay
+                                        </TableCell>
+                                        <TableCell className="text-right text-base font-bold tabular-nums">
+                                            {fmt(invoice.netPay)}
+                                        </TableCell>
+                                    </TableRow>
+                                </TableBody>
+                            </Table>
+                        </div>
+                    </div>
+
+                    {/* Timestamps & Notes */}
+                    {(invoice.approvedAt || invoice.paidAt || invoice.notes) && (
+                        <>
+                            <Separator className="my-6" />
+                            <div className="grid gap-4 sm:grid-cols-3">
+                                {invoice.approvedAt && (
+                                    <div>
+                                        <p className="text-xs text-muted-foreground">Approved</p>
+                                        <p className="text-sm font-medium">
+                                            {fmtDate(invoice.approvedAt)}
+                                        </p>
+                                    </div>
+                                )}
+                                {invoice.paidAt && (
+                                    <div>
+                                        <p className="text-xs text-muted-foreground">Paid</p>
+                                        <p className="text-sm font-medium">
+                                            {fmtDate(invoice.paidAt)}
+                                        </p>
+                                    </div>
+                                )}
+                                {invoice.notes && (
+                                    <div className="sm:col-span-2">
+                                        <p className="text-xs text-muted-foreground">Notes</p>
+                                        <p className="text-sm">{invoice.notes}</p>
+                                    </div>
+                                )}
+                            </div>
+                        </>
+                    )}
+                </CardContent>
+            </Card>
+
+            {/* ===== EOD REPORTS TABLE ===== */}
+            <Card>
+                <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                        <CardTitle className="flex items-center gap-2 text-base">
+                            <ClipboardList className="h-4 w-4" />
+                            Linked EOD Reports
+                            <Badge variant="secondary" className="ml-1 font-normal">
+                                {invoice.eodReports?.length ?? invoice.eodCount} reports
+                            </Badge>
+                        </CardTitle>
+                    </div>
+                </CardHeader>
+                <CardContent className="p-0">
+                    {invoice.eodReports && invoice.eodReports.length > 0 ? (
+                        <div className="rounded-b-lg border-t">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow className="hover:bg-transparent">
+                                        <TableHead className="h-10 bg-muted/50 text-xs font-medium">
+                                            Date
+                                        </TableHead>
+                                        <TableHead className="h-10 bg-muted/50 text-xs font-medium">
+                                            Hours
+                                        </TableHead>
+                                        <TableHead className="h-10 bg-muted/50 text-xs font-medium">
+                                            Status
+                                        </TableHead>
+                                        <TableHead className="h-10 bg-muted/50 text-xs font-medium">
+                                            Tasks
+                                        </TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {invoice.eodReports.map((eod) => (
+                                        <TableRow key={eod._id}>
+                                            <TableCell className="font-medium text-sm">
+                                                {fmtDate(eod.date)}
+                                            </TableCell>
+                                            <TableCell className="tabular-nums text-sm">
+                                                {eod.hoursWorked.toFixed(1)}h
+                                            </TableCell>
+                                            <TableCell>
+                                                <Badge
+                                                    variant="outline"
+                                                    className={
+                                                        eod.isApproved
+                                                            ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20 font-normal"
+                                                            : "bg-amber-500/10 text-amber-500 border-amber-500/20 font-normal"
+                                                    }
+                                                >
+                                                    {eod.isApproved ? "Approved" : eod.status}
+                                                </Badge>
+                                            </TableCell>
+                                            <TableCell className="max-w-[400px] truncate text-sm text-muted-foreground">
+                                                {eod.tasksCompleted || "—"}
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+
+                                    {/* Totals row */}
+                                    <TableRow className="hover:bg-transparent bg-muted/50 border-t-2 font-medium">
+                                        <TableCell className="text-sm font-semibold">
+                                            Total
+                                        </TableCell>
+                                        <TableCell className="tabular-nums text-sm font-semibold">
+                                            {invoice.totalHoursWorked.toFixed(1)}h
+                                        </TableCell>
+                                        <TableCell />
+                                        <TableCell className="text-sm text-muted-foreground">
+                                            {invoice.eodReports.length} report
+                                            {invoice.eodReports.length !== 1 ? "s" : ""}
+                                        </TableCell>
+                                    </TableRow>
+                                </TableBody>
+                            </Table>
+                        </div>
+                    ) : (
+                        <div className="flex flex-col items-center justify-center gap-2 border-t py-12">
+                            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+                                <ClipboardList className="h-6 w-6 text-muted-foreground" />
+                            </div>
+                            <p className="text-sm font-medium">No EOD reports linked</p>
+                            <p className="text-xs text-muted-foreground">
+                                No approved EOD reports were found for this period.
+                            </p>
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+        </div>
+    );
+}
