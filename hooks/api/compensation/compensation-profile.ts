@@ -18,9 +18,6 @@ export const getCompensationProfiles = async (
 ): Promise<CompensationProfile[]> => {
   const params = new URLSearchParams();
   params.append("businessId", query.businessId);
-  if (query.profileScope) params.append("profileScope", query.profileScope);
-  if (query.staffId) params.append("staffId", query.staffId);
-  if (query.jobPosition) params.append("jobPosition", query.jobPosition);
   if (query.isActive !== undefined) {
     params.append("isActive", String(query.isActive));
   }

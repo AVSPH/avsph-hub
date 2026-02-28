@@ -1,12 +1,7 @@
-export type CompensationProfileScope = "position" | "staff";
-
 export interface CompensationProfile {
   _id: string;
   name: string;
   businessId: string;
-  profileScope: CompensationProfileScope;
-  jobPosition: string;
-  staffId?: string;
   hourlyRate: number;
   overtimeRateMultiplier: number;
   sundayRateMultiplier: number;
@@ -29,9 +24,6 @@ export interface CompensationProfile {
 export interface CreateCompensationProfileRequest {
   name: string;
   businessId: string;
-  profileScope: CompensationProfileScope;
-  jobPosition: string;
-  staffId?: string;
   hourlyRate: number;
   overtimeRateMultiplier: number;
   sundayRateMultiplier: number;
@@ -54,8 +46,5 @@ export interface UpdateCompensationProfileRequest
 
 export interface CompensationProfileListQuery {
   businessId: string;
-  profileScope?: CompensationProfileScope;
-  staffId?: string;
-  jobPosition?: string;
   isActive?: boolean;
 }

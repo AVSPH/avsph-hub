@@ -16,42 +16,24 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   useCreateCompensationProfile,
   useUpdateCompensationProfile,
 } from "@/hooks/useCompensationProfile";
 import type {
   CompensationProfile,
-  CompensationProfileScope,
   CreateCompensationProfileRequest,
   UpdateCompensationProfileRequest,
 } from "@/types/compensation-profile.types";
-
-export interface CompensationProfileStaffOption {
-  id: string;
-  label: string;
-  position: string;
-}
 
 interface CompensationProfileDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   businessId: string;
   profile?: CompensationProfile | null;
-  staffOptions: CompensationProfileStaffOption[];
 }
 
 interface FormState {
   name: string;
-  profileScope: CompensationProfileScope;
-  staffId: string;
-  jobPosition: string;
   hourlyRate: string;
   overtimeRateMultiplier: string;
   sundayRateMultiplier: string;
@@ -76,9 +58,6 @@ function buildInitialForm(profile?: CompensationProfile | null): FormState {
   if (profile) {
     return {
       name: profile.name,
-      profileScope: profile.profileScope,
-      staffId: profile.staffId ?? "",
-      jobPosition: profile.jobPosition,
       hourlyRate: String(profile.hourlyRate),
       overtimeRateMultiplier: String(profile.overtimeRateMultiplier),
       sundayRateMultiplier: String(profile.sundayRateMultiplier),
@@ -100,9 +79,6 @@ function buildInitialForm(profile?: CompensationProfile | null): FormState {
 
   return {
     name: "",
-    profileScope: "position",
-    staffId: "",
-    jobPosition: "",
     hourlyRate: "",
     overtimeRateMultiplier: "1.25",
     sundayRateMultiplier: "1.30",
@@ -125,7 +101,6 @@ export function CompensationProfileDialog({
   onOpenChange,
   businessId,
   profile,
-  staffOptions,
 }: CompensationProfileDialogProps) {
   const [form, setForm] = useState<FormState>(buildInitialForm(profile));
   const isEditMode = !!profile?._id;
@@ -142,15 +117,8 @@ export function CompensationProfileDialog({
     }
   }, [open, profile]);
 
-  const selectedStaff =
-    form.profileScope === "staff"
-      ? staffOptions.find((staff) => staff.id === form.staffId)
-      : undefined;
-
   const isValid =
     form.name.trim().length > 0 &&
-    form.jobPosition.trim().length > 0 &&
-    (form.profileScope === "position" || !!form.staffId) &&
     !Number.isNaN(toNumber(form.hourlyRate)) &&
     toNumber(form.hourlyRate) > 0 &&
     !Number.isNaN(toNumber(form.overtimeRateMultiplier)) &&
@@ -175,9 +143,6 @@ export function CompensationProfileDialog({
   const createPayload: CreateCompensationProfileRequest = {
     name: form.name.trim(),
     businessId,
-    profileScope: form.profileScope,
-    jobPosition: form.jobPosition.trim(),
-    ...(form.profileScope === "staff" && { staffId: form.staffId }),
     hourlyRate: toNumber(form.hourlyRate),
     overtimeRateMultiplier: toNumber(form.overtimeRateMultiplier),
     sundayRateMultiplier: toNumber(form.sundayRateMultiplier),
@@ -235,7 +200,7 @@ export function CompensationProfileDialog({
               {isEditMode ? "Edit Compensation Profile" : "Create Compensation Profile"}
             </DialogTitle>
             <DialogDescription>
-              Manage shared compensation settings for position-level or staff-level payroll configuration.
+              Manage shared compensation settings and link them to staff from staff details.
             </DialogDescription>
           </DialogHeader>
 
@@ -252,83 +217,6 @@ export function CompensationProfileDialog({
                     setForm((prev) => ({ ...prev, name: e.target.value }))
                   }
                   placeholder="Warehouse Team Default"
-                  disabled={isPending}
-                  required
-                />
-              </div>
-
-              <div className="grid gap-2">
-                <Label>Profile Scope</Label>
-                <Select
-                  value={form.profileScope}
-                  onValueChange={(value) =>
-                    setForm((prev) => {
-                      const nextScope = value as CompensationProfileScope;
-                      return {
-                        ...prev,
-                        profileScope: nextScope,
-                        staffId: nextScope === "staff" ? prev.staffId : "",
-                      };
-                    })
-                  }
-                  disabled={isPending}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="position">Position</SelectItem>
-                    <SelectItem value="staff">Staff</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="grid gap-2">
-                <Label>Staff (for staff scope)</Label>
-                <Select
-                  value={form.staffId}
-                  onValueChange={(staffId) =>
-                    setForm((prev) => {
-                      const selected = staffOptions.find((s) => s.id === staffId);
-                      return {
-                        ...prev,
-                        staffId,
-                        jobPosition:
-                          prev.jobPosition || selected?.position || prev.jobPosition,
-                      };
-                    })
-                  }
-                  disabled={isPending || form.profileScope !== "staff"}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select staff" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {staffOptions.map((staff) => (
-                      <SelectItem key={staff.id} value={staff.id}>
-                        {staff.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {selectedStaff && (
-                  <p className="text-xs text-muted-foreground">
-                    Selected: {selectedStaff.label}
-                  </p>
-                )}
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="jobPosition">
-                  Job Position <span className="text-destructive">*</span>
-                </Label>
-                <Input
-                  id="jobPosition"
-                  value={form.jobPosition}
-                  onChange={(e) =>
-                    setForm((prev) => ({ ...prev, jobPosition: e.target.value }))
-                  }
-                  placeholder="Warehouse Associate"
                   disabled={isPending}
                   required
                 />
@@ -594,4 +482,3 @@ export function CompensationProfileDialog({
     </Dialog>
   );
 }
-

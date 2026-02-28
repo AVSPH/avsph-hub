@@ -121,17 +121,10 @@ export default function StaffDetailPage() {
 
     const profiles = compensationProfiles ?? [];
     const linked =
-      profiles.find((profile) => profile._id === staff.compensationProfileId) ??
-      null;
-    const own =
-      profiles.find(
-        (profile) => profile.profileScope === "staff" && profile.staffId === staffId,
-      ) ?? null;
+      profiles.find((profile) => profile._id === staff.compensationProfileId) ?? null;
 
-    setSelectedLinkProfileId(
-      staff.compensationProfileId ?? linked?._id ?? own?._id ?? "",
-    );
-  }, [staff, compensationProfiles, staffId]);
+    setSelectedLinkProfileId(linked?._id ?? "");
+  }, [staff, compensationProfiles]);
 
   const handleEditToggle = () => {
     if (!staff) return;
@@ -223,12 +216,7 @@ export default function StaffDetailPage() {
     allCompensationProfiles.find(
       (profile) => profile._id === staff.compensationProfileId,
     ) ?? null;
-  const ownStaffProfile =
-    allCompensationProfiles.find(
-      (profile) => profile.profileScope === "staff" && profile.staffId === staffId,
-    ) ?? null;
-  const activeCompensationProfile =
-    linkedCompensationProfile ?? ownStaffProfile ?? null;
+  const activeCompensationProfile = linkedCompensationProfile;
 
   const handleLinkCompensationProfile = () => {
     if (!selectedLinkProfileId) return;
@@ -678,7 +666,7 @@ export default function StaffDetailPage() {
                       <SelectContent>
                         {allCompensationProfiles.map((profile) => (
                           <SelectItem key={profile._id} value={profile._id}>
-                            {profile.name} ({profile.profileScope})
+                            {profile.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -708,20 +696,10 @@ export default function StaffDetailPage() {
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                       <div className="space-y-1.5">
                         <Label className="text-xs text-muted-foreground">
-                          Link Mode
+                          Link Status
                         </Label>
                         <p className="text-sm font-medium">
-                          {staff.compensationProfileId
-                            ? "Linked to shared profile"
-                            : "Using own/default profile"}
-                        </p>
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label className="text-xs text-muted-foreground">
-                          Profile Scope
-                        </Label>
-                        <p className="text-sm font-medium capitalize">
-                          {activeCompensationProfile.profileScope}
+                          Linked to compensation profile
                         </p>
                       </div>
                   <div className="space-y-1.5">
