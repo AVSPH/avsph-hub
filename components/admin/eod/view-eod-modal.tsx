@@ -1,4 +1,4 @@
-import { FileText, Clock, X, CheckCircle2, AlertCircle } from "lucide-react";
+import { FileText, Clock, CheckCircle2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -109,11 +109,23 @@ export function ViewEodDialog({
           <Separator />
 
           {/* Hours Worked */}
-          <div>
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">
-              Hours Worked
-            </p>
-            <p className="text-sm font-semibold">{report.hoursWorked}h</p>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div>
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">
+                Total Hours Worked
+              </p>
+              <p className="text-sm font-semibold">{report.hoursWorked}h</p>
+            </div>
+            <div>
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">
+                Regular / OT / Night
+              </p>
+              <p className="text-sm font-semibold">
+                {report.regularHoursWorked ?? report.hoursWorked}h /{" "}
+                {report.overtimeHoursWorked ?? 0}h /{" "}
+                {report.nightDifferentialHours ?? 0}h
+              </p>
+            </div>
           </div>
 
           {/* Tasks Completed */}

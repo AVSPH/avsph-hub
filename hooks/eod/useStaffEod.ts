@@ -5,12 +5,14 @@ import {
   resubmitEod,
   getMyEodReports,
   getMyEodById,
+  getMyExpectedEarnings,
 } from "@/hooks/api/eod/eod-staff";
 import type {
   SubmitEodRequest,
   EditOwnEodRequest,
   EodQuery,
   PaginatedEodResponse,
+  ExpectedEarningsResponse,
 } from "@/types/eod.types";
 import { AxiosError } from "axios";
 
@@ -34,6 +36,15 @@ export const useMyEodById = (id: string) => {
     queryKey: ["eod", "me", id],
     queryFn: () => getMyEodById(id),
     enabled: !!id,
+    staleTime: 30 * 1000,
+  });
+};
+
+// Hook to get expected earnings for current pay cycle
+export const useMyExpectedEarnings = () => {
+  return useQuery<ExpectedEarningsResponse>({
+    queryKey: ["eod", "me", "earnings"],
+    queryFn: () => getMyExpectedEarnings(),
     staleTime: 30 * 1000,
   });
 };

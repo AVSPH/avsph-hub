@@ -1,45 +1,26 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
-import {
-  FileText,
-  Loader2,
-  Plus,
-  Clock,
-  CheckCircle2,
-  AlertCircle,
-  X,
-  CalendarIcon,
-} from "lucide-react";
-import {
-  useMyEodReports,
-  useSubmitEod,
-  useResubmitEod,
-} from "@/hooks/eod/useStaffEod";
+import { useCallback, useMemo, useState } from "react";
+import { AlertCircle, CalendarClock, Clock3, Plus, Wallet } from "lucide-react";
+import type { DateRange } from "react-day-picker";
+import { SubmitEodDialog } from "@/components/staff/eod/submit-eod-modal";
+import { ViewEodDialog } from "@/components/staff/eod/view-eod-modal";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useMyEodReports, useMyExpectedEarnings } from "@/hooks/eod/useStaffEod";
+import type { EodQuery, EodReport, EodStatus } from "@/types/eod.types";
 import { getColumns } from "./columns";
 import { DataTable } from "./data-table";
-import type { EodQuery, EodReport, EodStatus } from "@/types/eod.types";
-import { Button } from "@/components/ui/button";
-import { SubmitEodDialog } from "@/components/staff/eod/submit-eod-modal";
-import { ViewEodDialog } from "@/components/admin/eod/view-eod-modal";
 
-
-// ──── Main Page ────
 export default function StaffEodPage() {
-  // Filter state
   const [status, setStatus] = useState<string>("all");
-  const [dateRange, setDateRange] = useState<
-    import("react-day-picker").DateRange | undefined
-  >(undefined);
-
-  // Dialog state
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [submitOpen, setSubmitOpen] = useState(false);
   const [viewReport, setViewReport] = useState<EodReport | null>(null);
   const [viewOpen, setViewOpen] = useState(false);
   const [resubmitReport, setResubmitReport] = useState<EodReport | null>(null);
   const [resubmitOpen, setResubmitOpen] = useState(false);
 
-  // Build query
   const queryParams: EodQuery = {
     ...(status !== "all" && { status: status as EodStatus }),
     ...(dateRange?.from && {
@@ -50,20 +31,16 @@ export default function StaffEodPage() {
     }),
   };
 
-  // Fetch data
   const { data: pagedData, isLoading, isError } = useMyEodReports(queryParams);
+  const { data: earnings, isLoading: isEarningsLoading } = useMyExpectedEarnings();
 
-  // Handlers
   const handleStatusFilter = useCallback((value: string) => {
     setStatus(value);
   }, []);
 
-  const handleDateRangeChange = useCallback(
-    (range: import("react-day-picker").DateRange | undefined) => {
-      setDateRange(range);
-    },
-    [],
-  );
+  const handleDateRangeChange = useCallback((range: DateRange | undefined) => {
+    setDateRange(range);
+  }, []);
 
   const handleView = useCallback((report: EodReport) => {
     setViewReport(report);
@@ -75,7 +52,6 @@ export default function StaffEodPage() {
     setResubmitOpen(true);
   }, []);
 
-  // Memoized columns
   const columns = useMemo(
     () =>
       getColumns({
@@ -87,16 +63,10 @@ export default function StaffEodPage() {
   const eodReports = pagedData?.data ?? [];
   const totalCount = pagedData?.pagination?.totalCount ?? 0;
 
-  // Error state
   if (isError) {
     return (
       <div className="flex min-h-[400px] flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
-        <div className="flex h-20 w-20 items-center justify-center rounded-full bg-destructive/10">
-          <FileText className="h-10 w-10 text-destructive" />
-        </div>
-        <h3 className="mt-4 text-xl font-semibold">
-          Unable to Load EOD Reports
-        </h3>
+        <h3 className="text-xl font-semibold">Unable to Load EOD Reports</h3>
         <p className="mt-2 text-base text-muted-foreground">
           There was an error loading your EOD reports. Please try again.
         </p>
@@ -106,12 +76,9 @@ export default function StaffEodPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight">
-            My EOD Reports
-          </h1>
+          <h1 className="text-2xl font-semibold tracking-tight">My EOD Reports</h1>
           <p className="text-sm text-muted-foreground">
             Submit and track your end-of-day reports
           </p>
@@ -128,7 +95,47 @@ export default function StaffEodPage() {
         </div>
       </div>
 
-      {/* Data Table */}
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs text-muted-foreground">Estimated Pay</CardTitle>
+          </CardHeader>
+          <CardContent className="flex items-center justify-between">
+            <p className="text-lg font-semibold">
+              {isEarningsLoading ? "..." : (earnings?.estimatedPay ?? 0).toLocaleString()}
+            </p>
+            <Wallet className="h-4 w-4 text-muted-foreground" />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs text-muted-foreground">Approved EODs</CardTitle>
+          </CardHeader>
+          <CardContent className="flex items-center justify-between">
+            <p className="text-lg font-semibold">{isEarningsLoading ? "..." : earnings?.approvedEodCount ?? 0}</p>
+            <Clock3 className="h-4 w-4 text-muted-foreground" />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs text-muted-foreground">Pending EODs</CardTitle>
+          </CardHeader>
+          <CardContent className="flex items-center justify-between">
+            <p className="text-lg font-semibold">{isEarningsLoading ? "..." : earnings?.pendingEodCount ?? 0}</p>
+            <AlertCircle className="h-4 w-4 text-muted-foreground" />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs text-muted-foreground">Next Payout</CardTitle>
+          </CardHeader>
+          <CardContent className="flex items-center justify-between">
+            <p className="text-lg font-semibold">{earnings?.nextPayoutDate ?? "-"}</p>
+            <CalendarClock className="h-4 w-4 text-muted-foreground" />
+          </CardContent>
+        </Card>
+      </div>
+
       <DataTable
         columns={columns}
         data={eodReports}
@@ -137,22 +144,13 @@ export default function StaffEodPage() {
         onStatusFilter={handleStatusFilter}
         dateRange={dateRange}
         onDateRangeChange={handleDateRangeChange}
-        onRowClick={(row) =>
-          handleView(row as import("@/types/eod.types").EodReport)
-        }
+        onRowClick={(row) => handleView(row as EodReport)}
       />
 
-      {/* Submit EOD Dialog */}
       <SubmitEodDialog open={submitOpen} onOpenChange={setSubmitOpen} />
 
-      {/* View EOD Dialog */}
-      <ViewEodDialog
-        report={viewReport}
-        open={viewOpen}
-        onOpenChange={setViewOpen}
-      />
+      <ViewEodDialog report={viewReport} open={viewOpen} onOpenChange={setViewOpen} />
 
-      {/* Resubmit EOD Dialog */}
       {resubmitReport && (
         <SubmitEodDialog
           open={resubmitOpen}

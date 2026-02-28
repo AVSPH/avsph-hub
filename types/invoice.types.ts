@@ -9,6 +9,20 @@ export interface InvoiceAdjustment {
   amount: number;
 }
 
+export interface InvoiceEarningsBreakdown {
+  regularEarnings: number;
+  overtimeEarnings: number;
+  sundayPremiumEarnings: number;
+  nightDifferentialEarnings: number;
+  riceAllowanceEarnings: number;
+}
+
+export interface InvoiceStatutoryDeductions {
+  sss: number;
+  pagIbig: number;
+  philHealth: number;
+}
+
 export interface Invoice {
   _id: string;
   staffId: string;
@@ -26,6 +40,8 @@ export interface Invoice {
 
   // Financials
   calculatedPay: number;
+  earningsBreakdown: InvoiceEarningsBreakdown;
+  statutoryDeductions: InvoiceStatutoryDeductions;
   deductions: InvoiceAdjustment[];
   additions: InvoiceAdjustment[];
   netPay: number;
@@ -64,6 +80,9 @@ export interface InvoiceDetail extends Invoice {
     _id: string;
     date: string;
     hoursWorked: number;
+    regularHoursWorked?: number;
+    overtimeHoursWorked?: number;
+    nightDifferentialHours?: number;
     tasksCompleted: string;
     status: string;
     isApproved: boolean;

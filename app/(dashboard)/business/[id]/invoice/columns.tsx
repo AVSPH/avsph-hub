@@ -137,7 +137,7 @@ export const createColumns = ({
             {invoice.staffName || "Unknown Staff"}
           </span>
           <span className="text-xs text-muted-foreground">
-            {invoice.staffPosition || "—"}
+            {invoice.staffEmail || invoice.staffPosition || "—"}
           </span>
         </div>
       );
@@ -175,6 +175,25 @@ export const createColumns = ({
         </span>
       );
     },
+  },
+  {
+    accessorKey: "baseSalary",
+    header: "Base Rate",
+    cell: ({ row }) => {
+      const invoice = row.original;
+      return (
+        <span className="text-sm tabular-nums">
+          {formatCurrency(invoice.baseSalary)} / hr
+        </span>
+      );
+    },
+  },
+  {
+    accessorKey: "totalDaysWorked",
+    header: "Days",
+    cell: ({ row }) => (
+      <span className="text-sm tabular-nums">{row.getValue("totalDaysWorked")}</span>
+    ),
   },
   {
     accessorKey: "eodCount",

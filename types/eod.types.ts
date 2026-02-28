@@ -8,6 +8,9 @@ export interface EodReport {
   businessId: string;
   date: string;
   hoursWorked: number;
+  regularHoursWorked?: number;
+  overtimeHoursWorked?: number;
+  nightDifferentialHours?: number;
   tasksCompleted: string;
   challenges?: string;
   nextDayPlan?: string;
@@ -29,6 +32,9 @@ export interface EodReport {
 export interface SubmitEodRequest {
   date: string;
   hoursWorked: number;
+  regularHoursWorked?: number;
+  overtimeHoursWorked?: number;
+  nightDifferentialHours?: number;
   tasksCompleted: string;
   challenges?: string;
   nextDayPlan?: string;
@@ -37,6 +43,9 @@ export interface SubmitEodRequest {
 
 export interface EditOwnEodRequest {
   hoursWorked?: number;
+  regularHoursWorked?: number;
+  overtimeHoursWorked?: number;
+  nightDifferentialHours?: number;
   tasksCompleted?: string;
   challenges?: string;
   nextDayPlan?: string;
@@ -52,6 +61,9 @@ export interface ReviewEodRequest {
 
 export interface AdminEditEodRequest {
   hoursWorked?: number;
+  regularHoursWorked?: number;
+  overtimeHoursWorked?: number;
+  nightDifferentialHours?: number;
   tasksCompleted?: string;
   date?: string;
   adminNotes?: string;
@@ -89,6 +101,19 @@ export interface PaginationInfo {
 export interface PaginatedEodResponse {
   data: EodReport[];
   pagination: PaginationInfo;
+}
+
+export interface ExpectedEarningsResponse {
+  periodStart: string;
+  periodEnd: string;
+  totalHoursWorked: number;
+  totalDaysWorked: number;
+  baseSalary: number;
+  salaryType: "hourly";
+  estimatedPay: number;
+  approvedEodCount: number;
+  pendingEodCount: number;
+  nextPayoutDate: string;
 }
 
 // Query types

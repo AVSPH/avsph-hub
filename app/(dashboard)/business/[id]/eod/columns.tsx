@@ -163,6 +163,21 @@ export function getColumns(
       },
     },
     {
+      id: "hoursBreakdown",
+      header: "Regular / OT / Night",
+      cell: ({ row }) => {
+        const report = row.original;
+        const regular = report.regularHoursWorked ?? report.hoursWorked;
+        const overtime = report.overtimeHoursWorked ?? 0;
+        const night = report.nightDifferentialHours ?? 0;
+        return (
+          <span className="text-sm text-muted-foreground">
+            {regular}h / {overtime}h / {night}h
+          </span>
+        );
+      },
+    },
+    {
       accessorKey: "tasksCompleted",
       header: "Tasks",
       cell: ({ row }) => {

@@ -130,7 +130,7 @@ export function DataTable<TData, TValue>({
           <div className="relative w-full sm:w-[300px]">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              placeholder="Search by staff name..."
+              placeholder="Search by staff name or email..."
               value={localSearch}
               onChange={(e) => setLocalSearch(e.target.value)}
               className="h-9 pl-9 bg-background"

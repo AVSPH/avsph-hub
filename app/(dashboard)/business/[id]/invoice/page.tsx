@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { FileText, Loader2, CalendarRange, Zap } from "lucide-react";
 import { useInvoicesByBusiness } from "@/hooks/invoice/useAdminInvoice";
 import {
+  useGenerateInvoice,
   useGenerateBusinessInvoices,
   useRecalculateInvoice,
   useApproveInvoice,
@@ -12,6 +13,7 @@ import {
   useDeleteInvoice,
 } from "@/hooks/invoice/useAdminInvoice";
 import { useBusinessById } from "@/hooks/useBusiness";
+import { useStaffByBusiness } from "@/hooks/useStaff";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -33,6 +35,13 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { createColumns } from "./columns";
 import { DataTable } from "./data-table";
 import type { Invoice, InvoiceQuery } from "@/types/invoice.types";
@@ -93,7 +102,15 @@ export default function InvoicePage() {
   const limit = 20;
 
   // Dialog state
+  const [manualGenerateOpen, setManualGenerateOpen] = useState(false);
   const [generateOpen, setGenerateOpen] = useState(false);
+  const [manualStaffId, setManualStaffId] = useState("");
+  const [manualPeriodStart, setManualPeriodStart] = useState(
+    getPreviousPeriod().start,
+  );
+  const [manualPeriodEnd, setManualPeriodEnd] = useState(
+    getPreviousPeriod().end,
+  );
   const [periodStart, setPeriodStart] = useState(getPreviousPeriod().start);
   const [periodEnd, setPeriodEnd] = useState(getPreviousPeriod().end);
   const [deleteTarget, setDeleteTarget] = useState<Invoice | null>(null);
@@ -116,8 +133,17 @@ export default function InvoicePage() {
     isLoading: isInvoiceLoading,
     isError,
   } = useInvoicesByBusiness(businessId, queryParams);
+  const { data: staffData, isLoading: isStaffLoading } = useStaffByBusiness(
+    businessId,
+    {
+      page: 1,
+      limit: 200,
+      status: "active",
+    },
+  );
 
   // Mutations
+  const manualGenerateMutation = useGenerateInvoice();
   const generateMutation = useGenerateBusinessInvoices();
   const recalculateMutation = useRecalculateInvoice();
   const approveMutation = useApproveInvoice();
@@ -155,6 +181,29 @@ export default function InvoicePage() {
       { onSuccess: () => setGenerateOpen(false) },
     );
   }, [generateMutation, businessId, periodStart, periodEnd]);
+
+  const handleManualGenerate = useCallback(() => {
+    if (!manualStaffId || !manualPeriodStart || !manualPeriodEnd) return;
+
+    manualGenerateMutation.mutate(
+      {
+        staffId: manualStaffId,
+        periodStart: manualPeriodStart,
+        periodEnd: manualPeriodEnd,
+      },
+      {
+        onSuccess: () => {
+          setManualGenerateOpen(false);
+          setManualStaffId("");
+        },
+      },
+    );
+  }, [
+    manualGenerateMutation,
+    manualStaffId,
+    manualPeriodStart,
+    manualPeriodEnd,
+  ]);
 
   const handleRecalculate = useCallback(
     (invoice: Invoice) => {
@@ -202,6 +251,18 @@ export default function InvoicePage() {
     setPeriodEnd(p.end);
   };
 
+  const applyCurrentManualPeriod = () => {
+    const p = getCurrentPeriod();
+    setManualPeriodStart(p.start);
+    setManualPeriodEnd(p.end);
+  };
+
+  const applyPreviousManualPeriod = () => {
+    const p = getPreviousPeriod();
+    setManualPeriodStart(p.start);
+    setManualPeriodEnd(p.end);
+  };
+
   const columns = createColumns({
     onView: handleRowClick,
     onRecalculate: handleRecalculate,
@@ -236,7 +297,14 @@ export default function InvoicePage() {
 
   const invoices = invoiceData?.data || [];
   const pagination = invoiceData?.pagination;
-  console.log("Fetched invoices:", invoices);
+  const staffMembers = staffData?.data ?? [];
+  const hasInvalidBatchPeriod =
+    !!periodStart && !!periodEnd && periodStart > periodEnd;
+  const hasInvalidManualPeriod =
+    !!manualPeriodStart &&
+    !!manualPeriodEnd &&
+    manualPeriodStart > manualPeriodEnd;
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -256,9 +324,17 @@ export default function InvoicePage() {
               <span>total invoices</span>
             </div>
           )}
+          <Button
+            variant="outline"
+            className="gap-2"
+            onClick={() => setManualGenerateOpen(true)}
+          >
+            <Zap className="h-4 w-4" />
+            Manual Generate
+          </Button>
           <Button className="gap-2" onClick={() => setGenerateOpen(true)}>
             <Zap className="h-4 w-4" />
-            Generate Invoices
+            Batch Generate
           </Button>
         </div>
       </div>
@@ -276,6 +352,119 @@ export default function InvoicePage() {
         statusFilter={status}
         isLoading={isInvoiceLoading}
       />
+
+      {/* Manual Generate Invoice Dialog */}
+      <Dialog open={manualGenerateOpen} onOpenChange={setManualGenerateOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Manual Invoice Generation</DialogTitle>
+            <DialogDescription>
+              Generate a draft invoice for one staff member and a specific pay
+              period.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label>Staff Member</Label>
+              <Select value={manualStaffId} onValueChange={setManualStaffId}>
+                <SelectTrigger>
+                  <SelectValue
+                    placeholder={
+                      isStaffLoading
+                        ? "Loading staff..."
+                        : "Select a staff member"
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {staffMembers.map((staff) => (
+                    <SelectItem key={staff._id} value={staff._id}>
+                      {staff.firstName} {staff.lastName} ({staff.position})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="gap-1.5"
+                onClick={applyPreviousManualPeriod}
+              >
+                <CalendarRange className="h-3.5 w-3.5" />
+                Previous Period
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="gap-1.5"
+                onClick={applyCurrentManualPeriod}
+              >
+                <CalendarRange className="h-3.5 w-3.5" />
+                Current Period
+              </Button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="manualPeriodStart">Period Start</Label>
+                <Input
+                  id="manualPeriodStart"
+                  type="date"
+                  value={manualPeriodStart}
+                  onChange={(e) => setManualPeriodStart(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="manualPeriodEnd">Period End</Label>
+                <Input
+                  id="manualPeriodEnd"
+                  type="date"
+                  value={manualPeriodEnd}
+                  onChange={(e) => setManualPeriodEnd(e.target.value)}
+                />
+              </div>
+            </div>
+
+            {hasInvalidManualPeriod && (
+              <p className="text-xs text-destructive">
+                Period end must be on or after period start.
+              </p>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setManualGenerateOpen(false)}
+              disabled={manualGenerateMutation.isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleManualGenerate}
+              disabled={
+                manualGenerateMutation.isPending ||
+                !manualStaffId ||
+                !manualPeriodStart ||
+                !manualPeriodEnd ||
+                hasInvalidManualPeriod
+              }
+              className="gap-2"
+            >
+              {manualGenerateMutation.isPending && (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              )}
+              Generate
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Generate Invoices Dialog */}
       <Dialog open={generateOpen} onOpenChange={setGenerateOpen}>
@@ -334,6 +523,12 @@ export default function InvoicePage() {
               </div>
             </div>
 
+            {hasInvalidBatchPeriod && (
+              <p className="text-xs text-destructive">
+                Period end must be on or after period start.
+              </p>
+            )}
+
             <p className="text-xs text-muted-foreground">
               Invoices will be generated for all active hourly staff. Existing
               invoices for the same period will be skipped automatically.
@@ -351,7 +546,10 @@ export default function InvoicePage() {
             <Button
               onClick={handleGenerate}
               disabled={
-                generateMutation.isPending || !periodStart || !periodEnd
+                generateMutation.isPending ||
+                !periodStart ||
+                !periodEnd ||
+                hasInvalidBatchPeriod
               }
               className="gap-2"
             >

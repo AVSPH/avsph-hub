@@ -120,6 +120,8 @@ const salaryTypeLabels: Record<string, string> = {
   annual: "Annual",
 };
 
+const STATUTORY_TYPES = new Set(["SSS", "Pag-IBIG", "PhilHealth"]);
+
 // ============ Page ============
 
 export default function InvoiceDetailPage() {
@@ -177,7 +179,14 @@ export default function InvoiceDetailPage() {
   const staffEmail = invoice.staffEmail || invoice.staff?.email || "—";
   const staffPosition = invoice.staffPosition || invoice.staff?.position || "—";
 
-  const totalDeductions = invoice.deductions.reduce(
+  const manualDeductions = invoice.deductions.filter(
+    (d) => !STATUTORY_TYPES.has(d.type),
+  );
+  const totalStatutoryDeductions =
+    (invoice.statutoryDeductions?.sss || 0) +
+    (invoice.statutoryDeductions?.pagIbig || 0) +
+    (invoice.statutoryDeductions?.philHealth || 0);
+  const totalManualDeductions = manualDeductions.reduce(
     (sum, d) => sum + d.amount,
     0,
   );
@@ -391,10 +400,92 @@ export default function InvoiceDetailPage() {
                 <TableBody>
                   <TableRow className="hover:bg-transparent">
                     <TableCell className="font-medium">
+                      Regular Earnings
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {fmt(invoice.earningsBreakdown?.regularEarnings || 0)}
+                    </TableCell>
+                  </TableRow>
+                  <TableRow className="hover:bg-transparent">
+                    <TableCell className="font-medium">
+                      Overtime Earnings
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {fmt(invoice.earningsBreakdown?.overtimeEarnings || 0)}
+                    </TableCell>
+                  </TableRow>
+                  <TableRow className="hover:bg-transparent">
+                    <TableCell className="font-medium">
+                      Sunday Premium Earnings
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {fmt(invoice.earningsBreakdown?.sundayPremiumEarnings || 0)}
+                    </TableCell>
+                  </TableRow>
+                  <TableRow className="hover:bg-transparent">
+                    <TableCell className="font-medium">
+                      Night Differential Earnings
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {fmt(invoice.earningsBreakdown?.nightDifferentialEarnings || 0)}
+                    </TableCell>
+                  </TableRow>
+                  <TableRow className="hover:bg-transparent">
+                    <TableCell className="font-medium">
+                      Rice Allowance
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {fmt(invoice.earningsBreakdown?.riceAllowanceEarnings || 0)}
+                    </TableCell>
+                  </TableRow>
+                  <TableRow className="hover:bg-transparent bg-muted/30">
+                    <TableCell className="font-medium">
                       Calculated Pay
                     </TableCell>
                     <TableCell className="text-right tabular-nums">
                       {fmt(invoice.calculatedPay)}
+                    </TableCell>
+                  </TableRow>
+
+                  {/* Statutory Deductions */}
+                  <TableRow className="hover:bg-transparent bg-red-500/5">
+                    <TableCell
+                      colSpan={2}
+                      className="text-xs font-medium uppercase text-red-600"
+                    >
+                      Statutory Deductions
+                    </TableCell>
+                  </TableRow>
+                  <TableRow className="hover:bg-transparent">
+                    <TableCell className="pl-8 text-sm text-muted-foreground">
+                      SSS
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums text-red-600">
+                      -{fmt(invoice.statutoryDeductions?.sss || 0)}
+                    </TableCell>
+                  </TableRow>
+                  <TableRow className="hover:bg-transparent">
+                    <TableCell className="pl-8 text-sm text-muted-foreground">
+                      Pag-IBIG
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums text-red-600">
+                      -{fmt(invoice.statutoryDeductions?.pagIbig || 0)}
+                    </TableCell>
+                  </TableRow>
+                  <TableRow className="hover:bg-transparent">
+                    <TableCell className="pl-8 text-sm text-muted-foreground">
+                      PhilHealth
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums text-red-600">
+                      -{fmt(invoice.statutoryDeductions?.philHealth || 0)}
+                    </TableCell>
+                  </TableRow>
+                  <TableRow className="hover:bg-transparent">
+                    <TableCell className="pl-8 text-sm font-medium">
+                      Total Statutory Deductions
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums font-medium text-red-600">
+                      -{fmt(totalStatutoryDeductions)}
                     </TableCell>
                   </TableRow>
 
@@ -439,7 +530,7 @@ export default function InvoiceDetailPage() {
                   )}
 
                   {/* Deductions */}
-                  {invoice.deductions.length > 0 && (
+                  {manualDeductions.length > 0 && (
                     <>
                       <TableRow className="hover:bg-transparent bg-red-500/5">
                         <TableCell
@@ -449,7 +540,7 @@ export default function InvoiceDetailPage() {
                           Deductions
                         </TableCell>
                       </TableRow>
-                      {invoice.deductions.map((d, i) => (
+                      {manualDeductions.map((d, i) => (
                         <TableRow
                           key={`ded-${i}`}
                           className="hover:bg-transparent"
@@ -469,10 +560,10 @@ export default function InvoiceDetailPage() {
                       ))}
                       <TableRow className="hover:bg-transparent">
                         <TableCell className="pl-8 text-sm font-medium">
-                          Total Deductions
+                          Total Manual Deductions
                         </TableCell>
                         <TableCell className="text-right tabular-nums font-medium text-red-600">
-                          -{fmt(totalDeductions)}
+                          -{fmt(totalManualDeductions)}
                         </TableCell>
                       </TableRow>
                     </>
@@ -557,6 +648,9 @@ export default function InvoiceDetailPage() {
                       Hours
                     </TableHead>
                     <TableHead className="h-10 bg-muted/50 text-xs font-medium">
+                      Regular / OT / Night
+                    </TableHead>
+                    <TableHead className="h-10 bg-muted/50 text-xs font-medium">
                       Status
                     </TableHead>
                     <TableHead className="h-10 bg-muted/50 text-xs font-medium">
@@ -572,6 +666,11 @@ export default function InvoiceDetailPage() {
                       </TableCell>
                       <TableCell className="tabular-nums text-sm">
                         {eod.hoursWorked.toFixed(1)}h
+                      </TableCell>
+                      <TableCell className="tabular-nums text-sm text-muted-foreground">
+                        {(eod.regularHoursWorked ?? eod.hoursWorked).toFixed(1)}h /{" "}
+                        {(eod.overtimeHoursWorked ?? 0).toFixed(1)}h /{" "}
+                        {(eod.nightDifferentialHours ?? 0).toFixed(1)}h
                       </TableCell>
                       <TableCell>
                         <Badge
@@ -599,6 +698,7 @@ export default function InvoiceDetailPage() {
                     <TableCell className="tabular-nums text-sm font-semibold">
                       {invoice.totalHoursWorked.toFixed(1)}h
                     </TableCell>
+                    <TableCell />
                     <TableCell />
                     <TableCell className="text-sm text-muted-foreground">
                       {invoice.eodReports.length} report

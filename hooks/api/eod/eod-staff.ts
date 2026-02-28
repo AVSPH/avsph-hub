@@ -7,6 +7,7 @@ import type {
   EditEodResponse,
   EodQuery,
   PaginatedEodResponse,
+  ExpectedEarningsResponse,
 } from "@/types/eod.types";
 
 // Submit an EOD report
@@ -47,5 +48,11 @@ export const getMyEodReports = async (
 // Get a single EOD report by ID (own report)
 export const getMyEodById = async (id: string): Promise<EodReport> => {
   const response = await api.get<EodReport>(`/eod/me/${id}`);
+  return response.data;
+};
+
+// Get expected earnings for current pay cycle
+export const getMyExpectedEarnings = async (): Promise<ExpectedEarningsResponse> => {
+  const response = await api.get<ExpectedEarningsResponse>("/eod/my-earnings");
   return response.data;
 };
