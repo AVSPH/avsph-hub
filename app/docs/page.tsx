@@ -8,15 +8,25 @@ import { ModeToggle } from "@/components/theme-toggle";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
+import Link from "next/link";
+import { useCurrentStaff } from "@/hooks/useAuthStaff";
+import { useCurrentAdmin } from "@/hooks/useAuth";
 
 export default function DocsPage() {
     const [activeCategory, setActiveCategory] = useState(sections[0].items[0].id);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+    const { data: staffData, isLoading: isLoadingStaff } = useCurrentStaff();
+    const { data: adminData, isLoading: isLoadingAdmin } = useCurrentAdmin();
+
     const handleCategorySelect = (id: string) => {
         setActiveCategory(id);
         setIsMobileMenuOpen(false);
     };
+
+    const isLoading = isLoadingStaff || isLoadingAdmin;
+    const isLoggedIn = !!(staffData || adminData);
+    const dashboardUrl = adminData ? "/overview" : "/dashboard";
 
     return (
         <div className="flex flex-col md:flex-row min-h-screen bg-background">
@@ -51,7 +61,21 @@ export default function DocsPage() {
                         </Sheet>
                         <span className="font-bold tracking-tight">AVS Guide</span>
                     </div>
-                    <ModeToggle />
+
+                    <div className="flex items-center gap-4">
+                        <ModeToggle />
+                        {!isLoading && (
+                            isLoggedIn ? (
+                                <Button variant="outline" size="sm" asChild>
+                                    <Link href={dashboardUrl}>Go to Dashboard</Link>
+                                </Button>
+                            ) : (
+                                <Button variant="outline" size="sm" asChild>
+                                    <Link href="/login">Sign In</Link>
+                                </Button>
+                            )
+                        )}
+                    </div>
                 </header>
 
                 {/* Content Scroll Area */}

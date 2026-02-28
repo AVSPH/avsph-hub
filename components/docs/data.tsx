@@ -21,6 +21,83 @@ export interface DocGroup {
 
 export const sections: DocGroup[] = [
   {
+    title: "ONBOARDING",
+    items: [
+      {
+        id: "onboarding-setup",
+        label: "Onboarding Setup",
+        icon: BookOpen,
+        sections: [
+          {
+            title: "1. Create Company Email",
+            content: (
+              <div className="space-y-2 text-muted-foreground">
+                <p>
+                  Create your company email, format is <code className="bg-muted px-1.5 py-0.5 rounded text-foreground">yourname.avs@gmail.com</code> (example: <code className="bg-muted px-1.5 py-0.5 rounded text-foreground">juandelacruz.avs@gmail.com</code>).
+                </p>
+                <div className="p-4 bg-destructive/10 text-destructive border border-destructive/20 rounded-lg">
+                  <p className="font-medium">This new email will be utilized for client and AVSPH communications. You are not allowed to use personal email.</p>
+                </div>
+              </div>
+            )
+          },
+          {
+            title: "2. Fill out Database",
+            content: (
+              <div className="space-y-4 text-muted-foreground">
+                <p>Please fill out the AVSPH VA Database, the information gathered is solely for agency purposes.</p>
+                <a
+                  href="https://docs.google.com/forms/d/e/1FAIpQLSch8623fnUZMxeU3l1TU47Amxg70qnNbz_SmBYhc3jKssks-g/viewform"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
+                >
+                  Fill out Form
+                </a>
+              </div>
+            )
+          },
+          {
+            title: "3. Inform HR",
+            content: (
+              <div className="space-y-4 text-muted-foreground">
+                <p>Inform HR of your new email by sending an email to <a href="mailto:admin@advancedvirtualstaff.com" className="text-primary hover:underline">admin@advancedvirtualstaff.com</a></p>
+
+                <div className="bg-muted/50 p-4 rounded-lg border font-mono text-sm space-y-4 text-foreground relative">
+                  <div>
+                    <span className="font-semibold text-muted-foreground">Subject:</span> New VA Email
+                  </div>
+                  <div>
+                    <span className="font-semibold text-muted-foreground">Body:</span>
+                    <br /><br />
+                    Good day,
+                    <br /><br />
+                    This is (yourname) and I am now using this email for company use. I was hired as (position). My client is (name of client) and I am working (# of hours).
+                    <br /><br />
+                    Thank you!
+                  </div>
+                </div>
+              </div>
+            )
+          },
+          {
+            title: "4. Client Kick-off & Hand-off",
+            content: (
+              <div className="space-y-4 text-muted-foreground mt-4 p-4 border border-dashed rounded-lg bg-muted/20">
+                <p className="italic">Note: Placeholders for client introduction process.</p>
+                <ul className="list-disc pl-5 space-y-2">
+                  <li><strong className="text-foreground">Introduction:</strong> How to initiate the first communication with your client.</li>
+                  <li><strong className="text-foreground">Scheduling:</strong> Arranging the initial kick-off call.</li>
+                  <li><strong className="text-foreground">First Week Expectations:</strong> What to prepare for in your first 5 days.</li>
+                </ul>
+              </div>
+            )
+          }
+        ]
+      }
+    ]
+  },
+    {
     title: "GETTING STARTED",
     items: [
       {
@@ -31,14 +108,26 @@ export const sections: DocGroup[] = [
           {
             title: "Tools & Work Setup",
             content: (
-              <div className="space-y-2">
-                <p className="font-semibold text-primary">MUST HAVE:</p>
-                <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
-                  <li>Desktop/laptop with reliable specs</li>
-                  <li>20 Mbps stable internet & backup connection</li>
-                  <li>USB noise-cancelling headset with mic</li>
-                  <li>Quiet, professional work environment</li>
-                </ul>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <p className="font-semibold text-primary">MUST HAVE:</p>
+                  <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
+                    <li>Desktop/laptop with reliable specs</li>
+                    <li>20 Mbps stable internet & backup connection</li>
+                    <li>USB noise-cancelling headset with mic</li>
+                    <li>Quiet, professional work environment</li>
+                  </ul>
+                </div>
+
+                <div className="mt-4 p-4 border border-dashed rounded-lg bg-muted/20 text-muted-foreground">
+                  <h4 className="font-semibold text-foreground mb-2">Team Logger Setup</h4>
+                  <p className="italic mb-2">Note: Placeholder for Team Logger setup instructions.</p>
+                  <ul className="list-disc pl-5 space-y-1">
+                    <li>Where to download the application</li>
+                    <li>How to log in using your AVS credentials</li>
+                    <li>Configuring idle time and screenshot settings</li>
+                  </ul>
+                </div>
               </div>
             ),
           },
@@ -59,6 +148,16 @@ export const sections: DocGroup[] = [
                 <p>Notify HR via WhatsApp (direct) for absences, lateness, or emergencies.</p>
                 <p>All planned leaves must be requested at least 1 month in advance.</p>
                 <p>Sick/personal leaves: Max of 2 consecutive days, up to 5 paid leaves per year (after 1 year).</p>
+
+                <div className="mt-4 p-4 border border-dashed rounded-lg bg-muted/20">
+                  <h4 className="font-semibold text-foreground mb-2">How to Request Leave</h4>
+                  <p className="italic mb-2">Note: Placeholder for direct leave filing instructions.</p>
+                  <ul className="list-disc pl-5 space-y-1 text-sm">
+                    <li>Where to find the Leave Request Form / Email template</li>
+                    <li>Who needs to approve the request (HR and Client)</li>
+                    <li>Guidelines for emergency versus scheduled leaves</li>
+                  </ul>
+                </div>
               </div>
             ),
           },
@@ -88,14 +187,24 @@ export const sections: DocGroup[] = [
             ),
           },
           {
-            title: "Communication Guidelines",
+            title: "Communication & Support",
             content: (
-              <div className="space-y-2 text-muted-foreground">
+              <div className="space-y-4 text-muted-foreground">
                 <ul className="list-disc pl-5 space-y-1">
                   <li>Respond within 1-2 hrs during your work schedule.</li>
                   <li>Notify HR if late or offline. Through WhatsApp.</li>
                   <li>Keep messages clear & professional.</li>
                 </ul>
+
+                <div className="p-4 border border-dashed rounded-lg bg-muted/20">
+                  <h4 className="font-semibold text-foreground mb-2">Escalation & Support Contacts</h4>
+                  <p className="italic mb-2">Note: Placeholder for specific contact information.</p>
+                  <ul className="list-disc pl-5 space-y-1 text-sm">
+                    <li><strong className="text-foreground">Payroll Issues:</strong> [Payroll Email/Contact]</li>
+                    <li><strong className="text-foreground">Client Disputes/Issues:</strong> [Account Manager Contact]</li>
+                    <li><strong className="text-foreground">Technical Support:</strong> [IT Contact]</li>
+                  </ul>
+                </div>
               </div>
             ),
           },
@@ -160,6 +269,17 @@ export const sections: DocGroup[] = [
                   <li><strong className="text-foreground">Schedule:</strong> Bi-monthly payouts. Any delays will be communicated 3 days prior.</li>
                   <li><strong className="text-foreground">Requirement:</strong> Invoice submission via email is required before each payout.</li>
                 </ul>
+
+                <div className="mt-4 p-4 border border-dashed rounded-lg bg-background">
+                  <h4 className="font-semibold text-foreground mb-2">Invoice Submission Instructions</h4>
+                  <p className="italic mb-2 text-sm">Note: Placeholder for invoicing procedure.</p>
+                  <ul className="list-disc pl-5 space-y-2 text-sm">
+                    <li><strong className="text-foreground">Where to send:</strong> billing@advancedvirtualstaff.com</li>
+                    <li><strong className="text-foreground">Subject Line Format:</strong> Invoice - [Your Name] - [Cut-off Date]</li>
+                    <li><strong className="text-foreground">Cut-off Dates:</strong> 15th and 30th of the month.</li>
+                    <li><strong className="text-foreground">Template:</strong> Link to approved invoice template.</li>
+                  </ul>
+                </div>
               </div>
             ),
           },
@@ -228,77 +348,6 @@ export const sections: DocGroup[] = [
                     </TableRow>
                   </TableBody>
                 </Table>
-              </div>
-            )
-          }
-        ]
-      }
-    ]
-  },
-  {
-    title: "ONBOARDING",
-    items: [
-      {
-        id: "onboarding-setup",
-        label: "Onboarding Setup",
-        icon: BookOpen,
-        sections: [
-          {
-            title: "1. Create Company Email",
-            content: (
-              <div className="space-y-2 text-muted-foreground">
-                <p>
-                  Create your company email, format is <code className="bg-muted px-1.5 py-0.5 rounded text-foreground">yourname.avs@gmail.com</code> (example: <code className="bg-muted px-1.5 py-0.5 rounded text-foreground">juandelacruz.avs@gmail.com</code>).
-                </p>
-                <div className="p-4 bg-destructive/10 text-destructive border border-destructive/20 rounded-lg">
-                  <p className="font-medium">This new email will be utilized for client and AVSPH communications. You are not allowed to use personal email.</p>
-                </div>
-              </div>
-            )
-          },
-          {
-            title: "2. Fill out Database",
-            content: (
-              <div className="space-y-4 text-muted-foreground">
-                <p>Please fill out the AVSPH VA Database, the information gathered is solely for agency purposes.</p>
-                <a
-                  href="https://docs.google.com/forms/d/e/1FAIpQLSch8623fnUZMxeU3l1TU47Amxg70qnNbz_SmBYhc3jKssks-g/viewform"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
-                >
-                  Fill out Form
-                </a>
-              </div>
-            )
-          },
-          {
-            title: "3. Inform HR",
-            content: (
-              <div className="space-y-4 text-muted-foreground">
-                <p>Inform HR of your new email by sending an email to <a href="mailto:admin@advancedvirtualstaff.com" className="text-primary hover:underline">admin@advancedvirtualstaff.com</a></p>
-
-                <div className="bg-muted/50 p-4 rounded-lg border font-mono text-sm space-y-4 text-foreground relative">
-                  <div>
-                    <span className="font-semibold text-muted-foreground">Subject:</span> New VA Email
-                  </div>
-                  <div>
-                    <span className="font-semibold text-muted-foreground">Body:</span>
-                    <br /><br />
-                    Good day,
-                    <br /><br />
-                    This is (yourname) and I am now using this email for company use. I was hired as (position). My client is (name of client) and I am working (# of hours).
-                    <br /><br />
-                    Thank you!
-                  </div>
-                </div>
-
-                {/* <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg flex items-center justify-between">
-                  <p className="font-medium">Wait for HR response, your contract will then be sent to your company email.</p>
-                  <button className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 rounded-md px-3">
-                    Mark As Complete
-                  </button>
-                </div> */}
               </div>
             )
           }
@@ -383,5 +432,6 @@ export const sections: DocGroup[] = [
         ]
       }
     ]
-  }
+  },
+
 ];
