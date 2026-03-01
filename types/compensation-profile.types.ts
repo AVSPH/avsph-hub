@@ -2,6 +2,7 @@ export interface CompensationProfile {
   _id: string;
   name: string;
   businessId: string;
+  currency: string;
   hourlyRate: number;
   overtimeRateMultiplier: number;
   sundayRateMultiplier: number;
@@ -24,6 +25,7 @@ export interface CompensationProfile {
 export interface CreateCompensationProfileRequest {
   name: string;
   businessId: string;
+  currency: string;
   hourlyRate: number;
   overtimeRateMultiplier: number;
   sundayRateMultiplier: number;
@@ -41,8 +43,7 @@ export interface CreateCompensationProfileRequest {
   isActive?: boolean;
 }
 
-export interface UpdateCompensationProfileRequest
-  extends Partial<CreateCompensationProfileRequest> {}
+export interface UpdateCompensationProfileRequest extends Partial<CreateCompensationProfileRequest> {}
 
 export interface CompensationProfileListQuery {
   businessId: string;

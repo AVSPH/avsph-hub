@@ -59,10 +59,10 @@ const salaryTypeConfig: Record<string, string> = {
   annual: "Annual",
 };
 
-function formatCurrency(amount: number) {
+function formatCurrency(amount: number, currency = "USD") {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
-    currency: "USD",
+    currency,
   }).format(amount);
 }
 
@@ -183,7 +183,7 @@ export const createColumns = ({
       const invoice = row.original;
       return (
         <span className="text-sm tabular-nums">
-          {formatCurrency(invoice.baseSalary)} / hr
+          {formatCurrency(invoice.baseSalary, invoice.currency)} / hr
         </span>
       );
     },
@@ -192,7 +192,9 @@ export const createColumns = ({
     accessorKey: "totalDaysWorked",
     header: "Days",
     cell: ({ row }) => (
-      <span className="text-sm tabular-nums">{row.getValue("totalDaysWorked")}</span>
+      <span className="text-sm tabular-nums">
+        {row.getValue("totalDaysWorked")}
+      </span>
     ),
   },
   {
@@ -234,7 +236,10 @@ export const createColumns = ({
     ),
     cell: ({ row }) => (
       <span className="text-sm tabular-nums">
-        {formatCurrency(row.getValue("calculatedPay") as number)}
+        {formatCurrency(
+          row.getValue("calculatedPay") as number,
+          row.original.currency,
+        )}
       </span>
     ),
   },
@@ -254,7 +259,7 @@ export const createColumns = ({
       const netPay = row.getValue("netPay") as number;
       return (
         <span className="text-sm font-medium tabular-nums">
-          {formatCurrency(netPay)}
+          {formatCurrency(netPay, row.original.currency)}
         </span>
       );
     },

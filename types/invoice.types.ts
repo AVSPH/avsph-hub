@@ -27,6 +27,7 @@ export interface Invoice {
   _id: string;
   staffId: string;
   businessId: string;
+  currency: string;
 
   // Period details
   periodStart: string;
@@ -66,6 +67,16 @@ export interface Invoice {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
+
+  // PHP Conversion (stored for non-PHP invoices)
+  phpConversion?: {
+    exchangeRate: number;
+    baseSalaryPhp: number;
+    calculatedPayPhp: number;
+    netPayPhp: number;
+    statutoryDeductions: InvoiceStatutoryDeductions;
+    earningsBreakdownPhp: InvoiceEarningsBreakdown;
+  };
 }
 
 // Invoice with staff details and linked EOD reports (from GET /invoices/:id)

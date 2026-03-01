@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { InvoicePDFDocument } from "@/components/invoice/InvoicePDFDocument";
 import {
   ArrowLeft,
+  ArrowRightLeft,
   Loader2,
   FileText,
   RefreshCw,
@@ -78,10 +79,22 @@ const statusConfig: Record<
   },
 };
 
-function fmt(amount: number) {
+function fmt(amount: number, currency?: string) {
+  const cur = currency || "USD";
   return new Intl.NumberFormat("en-US", {
     style: "currency",
-    currency: "USD",
+    currency: cur,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(amount);
+}
+
+function fmtPhp(amount: number) {
+  return new Intl.NumberFormat("en-PH", {
+    style: "currency",
+    currency: "PHP",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   }).format(amount);
 }
 
@@ -130,12 +143,17 @@ const PDFDownloadButton = dynamic(
   {
     ssr: false,
     loading: () => (
-      <Button disabled size="sm" variant="outline" className="flex items-center gap-2 h-9">
+      <Button
+        disabled
+        size="sm"
+        variant="outline"
+        className="flex items-center gap-2 h-9"
+      >
         <Loader2 className="h-4 w-4 animate-spin" />
         PDF
       </Button>
     ),
-  }
+  },
 );
 
 // ============ Page ============
@@ -150,7 +168,7 @@ export default function InvoiceDetailPage() {
   const recalculateMutation = useRecalculateInvoice();
   const approveMutation = useApproveInvoice();
   const markPaidMutation = useMarkInvoicePaid();
-
+  console.log("Invoice data:", invoice); // Debug log 
   const isDraftOrCalculated =
     invoice?.status === "draft" || invoice?.status === "calculated";
 
@@ -172,7 +190,8 @@ export default function InvoiceDetailPage() {
         </div>
         <h3 className="mt-6 text-xl font-semibold">Invoice Not Found</h3>
         <p className="mt-2 text-sm text-muted-foreground">
-          The invoice could not be loaded or you do not have permission to view it.
+          The invoice could not be loaded or you do not have permission to view
+          it.
         </p>
         <Button
           variant="outline"
@@ -198,10 +217,6 @@ export default function InvoiceDetailPage() {
   const manualDeductions = invoice.deductions.filter(
     (d: any) => !STATUTORY_TYPES.has(d.type),
   );
-  const totalStatutoryDeductions =
-    (invoice.statutoryDeductions?.sss || 0) +
-    (invoice.statutoryDeductions?.pagIbig || 0) +
-    (invoice.statutoryDeductions?.philHealth || 0);
   const totalManualDeductions = manualDeductions.reduce(
     (sum: number, d: any) => sum + d.amount,
     0,
@@ -210,6 +225,20 @@ export default function InvoiceDetailPage() {
     (sum: number, a: any) => sum + a.amount,
     0,
   );
+
+  const cur = invoice.currency || "PHP";
+  const php = invoice.phpConversion;
+  const isNonPhp = cur !== "PHP" && !!php;
+
+  // For non-PHP invoices, statutory deductions live in phpConversion (they are PHP-denominated)
+  const effectiveStatutory =
+    isNonPhp && php?.statutoryDeductions
+      ? php.statutoryDeductions
+      : invoice.statutoryDeductions;
+  const totalStatutoryDeductions =
+    (effectiveStatutory?.sss || 0) +
+    (effectiveStatutory?.pagIbig || 0) +
+    (effectiveStatutory?.philHealth || 0);
 
   return (
     <div className="mx-auto max-w-5xl space-y-8 pb-12 pt-4 px-4 sm:px-6 lg:px-8">
@@ -273,7 +302,7 @@ export default function InvoiceDetailPage() {
                   <AlertDialogTitle>Approve Invoice</AlertDialogTitle>
                   <AlertDialogDescription>
                     This will approve the invoice for {staffFullName} with a net
-                    pay of {fmt(invoice.netPay)}. The invoice will become
+                    pay of {fmt(invoice.netPay, cur)}. The invoice will become
                     visible to the staff member.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
@@ -305,7 +334,7 @@ export default function InvoiceDetailPage() {
                 <AlertDialogHeader>
                   <AlertDialogTitle>Mark as Paid</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Confirm that {fmt(invoice.netPay)} has been paid to{" "}
+                    Confirm that {fmt(invoice.netPay, cur)} has been paid to{" "}
                     {staffFullName}. This action cannot be undone.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
@@ -374,7 +403,9 @@ export default function InvoiceDetailPage() {
             </div>
             <div className="text-left sm:text-right">
               <p className="text-sm text-muted-foreground mb-1">Generated</p>
-              <p className="font-medium text-lg">{fmtDate(invoice.createdAt)}</p>
+              <p className="font-medium text-lg">
+                {fmtDate(invoice.createdAt)}
+              </p>
             </div>
           </div>
         </div>
@@ -385,7 +416,9 @@ export default function InvoiceDetailPage() {
             <div className="p-6 sm:p-8 space-y-6">
               <div className="flex items-center gap-2 text-muted-foreground pb-2 border-b border-border/40">
                 <User className="h-4 w-4" />
-                <h3 className="text-xs font-bold uppercase tracking-widest">Employee Information</h3>
+                <h3 className="text-xs font-bold uppercase tracking-widest">
+                  Employee Information
+                </h3>
               </div>
               <div className="space-y-3">
                 <p className="text-xl font-semibold">{staffFullName}</p>
@@ -401,28 +434,61 @@ export default function InvoiceDetailPage() {
             <div className="p-6 sm:p-8 space-y-6 bg-muted/10">
               <div className="flex items-center gap-2 text-muted-foreground pb-2 border-b border-border/40">
                 <DollarSign className="h-4 w-4" />
-                <h3 className="text-xs font-bold uppercase tracking-widest">Pay Structure</h3>
+                <h3 className="text-xs font-bold uppercase tracking-widest">
+                  Pay Structure
+                </h3>
               </div>
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Base Rate</span>
+                  <span className="text-sm text-muted-foreground">
+                    Currency
+                  </span>
+                  <Badge variant={cur !== "PHP" ? "default" : "secondary"}>
+                    {cur}
+                  </Badge>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">
+                    Base Rate
+                  </span>
                   <span className="font-medium text-lg">
-                    {fmt(invoice.baseSalary)}{" "}
+                    {fmt(invoice.baseSalary, cur)}{" "}
                     <span className="text-muted-foreground text-sm font-normal">
-                      / {salaryTypeLabels[invoice.salaryType]?.toLowerCase() || invoice.salaryType}
+                      /{" "}
+                      {salaryTypeLabels[invoice.salaryType]?.toLowerCase() ||
+                        invoice.salaryType}
+                    </span>
+                  </span>
+                </div>
+                {isNonPhp && (
+                  <div className="flex justify-between items-center text-sm text-muted-foreground">
+                    <span>Base Rate (PHP)</span>
+                    <span>
+                      {fmtPhp(php.baseSalaryPhp)}{" "}
+                      <span className="text-xs">@ {php.exchangeRate}</span>
+                    </span>
+                  </div>
+                )}
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">
+                    Hours Worked
+                  </span>
+                  <span className="font-medium">
+                    {invoice.totalHoursWorked.toFixed(1)}{" "}
+                    <span className="text-muted-foreground text-sm font-normal">
+                      hrs
                     </span>
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Hours Worked</span>
-                  <span className="font-medium">
-                    {invoice.totalHoursWorked.toFixed(1)} <span className="text-muted-foreground text-sm font-normal">hrs</span>
+                  <span className="text-sm text-muted-foreground">
+                    Days Worked
                   </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Days Worked</span>
                   <span className="font-medium">
-                    {invoice.totalDaysWorked} <span className="text-muted-foreground text-sm font-normal">days</span>
+                    {invoice.totalDaysWorked}{" "}
+                    <span className="text-muted-foreground text-sm font-normal">
+                      days
+                    </span>
                   </span>
                 </div>
               </div>
@@ -431,98 +497,173 @@ export default function InvoiceDetailPage() {
 
           {/* Breakdown Section */}
           <div className="p-6 sm:p-8">
-            <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-6">Earnings Breakdown</h3>
+            <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-6">
+              Earnings Breakdown
+            </h3>
 
             <div className="space-y-1">
               {/* Earnings */}
               <div className="flex justify-between py-2 text-sm">
                 <span className="font-medium">Regular Earnings</span>
-                <span>{fmt(invoice.earningsBreakdown?.regularEarnings || 0)}</span>
+                <span>
+                  {fmt(invoice.earningsBreakdown?.regularEarnings || 0, cur)}
+                </span>
               </div>
               <div className="flex justify-between py-2 text-sm">
                 <span className="text-muted-foreground">Overtime Earnings</span>
-                <span>{fmt(invoice.earningsBreakdown?.overtimeEarnings || 0)}</span>
+                <span>
+                  {fmt(invoice.earningsBreakdown?.overtimeEarnings || 0, cur)}
+                </span>
               </div>
               <div className="flex justify-between py-2 text-sm">
                 <span className="text-muted-foreground">Sunday Premium</span>
-                <span>{fmt(invoice.earningsBreakdown?.sundayPremiumEarnings || 0)}</span>
+                <span>
+                  {fmt(
+                    invoice.earningsBreakdown?.sundayPremiumEarnings || 0,
+                    cur,
+                  )}
+                </span>
               </div>
               <div className="flex justify-between py-2 text-sm">
-                <span className="text-muted-foreground">Night Differential</span>
-                <span>{fmt(invoice.earningsBreakdown?.nightDifferentialEarnings || 0)}</span>
+                <span className="text-muted-foreground">
+                  Night Differential
+                </span>
+                <span>
+                  {fmt(
+                    invoice.earningsBreakdown?.nightDifferentialEarnings || 0,
+                    cur,
+                  )}
+                </span>
               </div>
               <div className="flex justify-between py-2 text-sm">
                 <span className="text-muted-foreground">Rice Allowance</span>
-                <span>{fmt(invoice.earningsBreakdown?.riceAllowanceEarnings || 0)}</span>
+                <span>
+                  {fmt(
+                    invoice.earningsBreakdown?.riceAllowanceEarnings || 0,
+                    cur,
+                  )}
+                </span>
               </div>
 
               <Separator className="my-2" />
 
               <div className="flex justify-between py-3 font-semibold text-base bg-muted/30 px-3 rounded-lg -mx-3">
                 <span>Calculated Pay</span>
-                <span>{fmt(invoice.calculatedPay)}</span>
+                <span>{fmt(invoice.calculatedPay, cur)}</span>
               </div>
 
               {/* Additions */}
               {invoice.additions.length > 0 && (
                 <div className="mt-8 mb-4">
-                  <h4 className="text-xs font-bold uppercase tracking-widest text-emerald-600/80 mb-3">Additions</h4>
+                  <h4 className="text-xs font-bold uppercase tracking-widest text-emerald-600/80 mb-3">
+                    Additions
+                  </h4>
                   <div className="space-y-1">
                     {invoice.additions.map((a: any, i: number) => (
-                      <div key={`add-${i}`} className="flex justify-between py-1.5 text-sm">
+                      <div
+                        key={`add-${i}`}
+                        className="flex justify-between py-1.5 text-sm"
+                      >
                         <span className="text-muted-foreground">
-                          {a.type} {a.description && <span className="text-xs ml-1 opacity-70 border-l pl-2 border-border/50">{a.description}</span>}
+                          {a.type}{" "}
+                          {a.description && (
+                            <span className="text-xs ml-1 opacity-70 border-l pl-2 border-border/50">
+                              {a.description}
+                            </span>
+                          )}
                         </span>
-                        <span className="text-emerald-600 font-medium">+{fmt(a.amount)}</span>
+                        <span className="text-emerald-600 font-medium">
+                          +{fmt(a.amount, cur)}
+                        </span>
                       </div>
                     ))}
                     <div className="flex justify-between py-2 mt-2 text-sm font-medium border-t border-border/40">
                       <span>Total Additions</span>
-                      <span className="text-emerald-600">+{fmt(totalAdditions)}</span>
+                      <span className="text-emerald-600">
+                        +{fmt(totalAdditions, cur)}
+                      </span>
                     </div>
                   </div>
                 </div>
               )}
 
               {/* Statutory Deductions */}
-              <div className="mt-8 mb-4">
-                <h4 className="text-xs font-bold uppercase tracking-widest text-red-600/80 mb-3">Statutory Deductions</h4>
-                <div className="space-y-1">
-                  <div className="flex justify-between py-1.5 text-sm">
-                    <span className="text-muted-foreground">SSS</span>
-                    <span className="text-red-600 font-medium">-{fmt(invoice.statutoryDeductions?.sss || 0)}</span>
-                  </div>
-                  <div className="flex justify-between py-1.5 text-sm">
-                    <span className="text-muted-foreground">Pag-IBIG</span>
-                    <span className="text-red-600 font-medium">-{fmt(invoice.statutoryDeductions?.pagIbig || 0)}</span>
-                  </div>
-                  <div className="flex justify-between py-1.5 text-sm">
-                    <span className="text-muted-foreground">PhilHealth</span>
-                    <span className="text-red-600 font-medium">-{fmt(invoice.statutoryDeductions?.philHealth || 0)}</span>
-                  </div>
-                  <div className="flex justify-between py-2 mt-2 text-sm font-medium border-t border-border/40">
-                    <span>Total Statutory Deductions</span>
-                    <span className="text-red-600">-{fmt(totalStatutoryDeductions)}</span>
+              {(totalStatutoryDeductions > 0 || !isNonPhp) && (
+                <div className="mt-8 mb-4">
+                  <h4 className="text-xs font-bold uppercase tracking-widest text-red-600/80 mb-3">
+                    Statutory Deductions{isNonPhp ? " (PHP)" : ""}
+                  </h4>
+                  <div className="space-y-1">
+                    <div className="flex justify-between py-1.5 text-sm">
+                      <span className="text-muted-foreground">SSS</span>
+                      <span className="text-red-600 font-medium">
+                        -
+                        {isNonPhp
+                          ? fmtPhp(effectiveStatutory?.sss || 0)
+                          : fmt(effectiveStatutory?.sss || 0, cur)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between py-1.5 text-sm">
+                      <span className="text-muted-foreground">Pag-IBIG</span>
+                      <span className="text-red-600 font-medium">
+                        -
+                        {isNonPhp
+                          ? fmtPhp(effectiveStatutory?.pagIbig || 0)
+                          : fmt(effectiveStatutory?.pagIbig || 0, cur)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between py-1.5 text-sm">
+                      <span className="text-muted-foreground">PhilHealth</span>
+                      <span className="text-red-600 font-medium">
+                        -
+                        {isNonPhp
+                          ? fmtPhp(effectiveStatutory?.philHealth || 0)
+                          : fmt(effectiveStatutory?.philHealth || 0, cur)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between py-2 mt-2 text-sm font-medium border-t border-border/40">
+                      <span>Total Statutory Deductions</span>
+                      <span className="text-red-600">
+                        -
+                        {isNonPhp
+                          ? fmtPhp(totalStatutoryDeductions)
+                          : fmt(totalStatutoryDeductions, cur)}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
 
               {/* Manual Deductions */}
               {manualDeductions.length > 0 && (
                 <div className="mt-8 mb-4">
-                  <h4 className="text-xs font-bold uppercase tracking-widest text-red-600/80 mb-3">Other Deductions</h4>
+                  <h4 className="text-xs font-bold uppercase tracking-widest text-red-600/80 mb-3">
+                    Other Deductions
+                  </h4>
                   <div className="space-y-1">
                     {manualDeductions.map((d: any, i: number) => (
-                      <div key={`ded-${i}`} className="flex justify-between py-1.5 text-sm">
+                      <div
+                        key={`ded-${i}`}
+                        className="flex justify-between py-1.5 text-sm"
+                      >
                         <span className="text-muted-foreground">
-                          {d.type} {d.description && <span className="text-xs ml-1 opacity-70 border-l pl-2 border-border/50">{d.description}</span>}
+                          {d.type}{" "}
+                          {d.description && (
+                            <span className="text-xs ml-1 opacity-70 border-l pl-2 border-border/50">
+                              {d.description}
+                            </span>
+                          )}
                         </span>
-                        <span className="text-red-600 font-medium">-{fmt(d.amount)}</span>
+                        <span className="text-red-600 font-medium">
+                          -{fmt(d.amount, cur)}
+                        </span>
                       </div>
                     ))}
                     <div className="flex justify-between py-2 mt-2 text-sm font-medium border-t border-border/40">
                       <span>Total Other Deductions</span>
-                      <span className="text-red-600">-{fmt(totalManualDeductions)}</span>
+                      <span className="text-red-600">
+                        -{fmt(totalManualDeductions, cur)}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -531,15 +672,80 @@ export default function InvoiceDetailPage() {
           </div>
 
           {/* NET PAY FOOTER */}
-          <div className="bg-primary px-6 py-8 sm:px-8 text-primary-foreground flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div>
-              <p className="text-sm uppercase tracking-widest opacity-80 font-medium mb-1">Total Net Pay</p>
-              <p className="text-xs opacity-60">Calculated Pay + Additions - Deductions</p>
-            </div>
-            <div className="text-4xl font-black tabular-nums tracking-tight">
-              {fmt(invoice.netPay)}
+          <div className="bg-primary px-6 py-8 sm:px-8 text-primary-foreground">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div>
+                <p className="text-sm uppercase tracking-widest opacity-80 font-medium mb-1">
+                  Total Net Pay
+                </p>
+                <p className="text-xs opacity-60">
+                  Calculated Pay + Additions - Deductions
+                </p>
+              </div>
+              <div className="text-right">
+                <div className="text-4xl font-black tabular-nums tracking-tight">
+                  {fmt(invoice.netPay, cur)}
+                </div>
+                {isNonPhp && php && (
+                  <div className="mt-2 text-sm opacity-80 flex items-center gap-2 justify-end">
+                    <ArrowRightLeft className="h-3.5 w-3.5" />
+                    <span className="font-semibold">
+                      {fmtPhp(php.netPayPhp)}
+                    </span>
+                    <span className="text-xs opacity-70">
+                      @ 1 {cur} = {php.exchangeRate} PHP
+                    </span>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
+
+          {/* PHP Conversion Breakdown */}
+          {isNonPhp && php && (
+            <div className="px-6 py-5 sm:px-8 bg-amber-50/60 dark:bg-amber-950/20 border-t border-amber-200/50 dark:border-amber-800/30">
+              <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400 mb-4">
+                <ArrowRightLeft className="h-4 w-4" />
+                <h3 className="text-xs font-bold uppercase tracking-widest">
+                  PHP Conversion Breakdown
+                </h3>
+                <Badge
+                  variant="outline"
+                  className="ml-auto text-xs border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-400"
+                >
+                  1 {cur} = {php.exchangeRate} PHP
+                </Badge>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">
+                    Base Salary
+                  </p>
+                  <p className="font-medium">{fmtPhp(php.baseSalaryPhp)}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">
+                    Calculated Pay
+                  </p>
+                  <p className="font-medium">{fmtPhp(php.calculatedPayPhp)}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">
+                    Deductions
+                  </p>
+                  <p className="font-medium text-red-600">
+                    -{fmtPhp(totalStatutoryDeductions)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">Net Pay</p>
+                  <p className="font-bold text-amber-700 dark:text-amber-400">
+                    {fmtPhp(php.netPayPhp)}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -548,19 +754,29 @@ export default function InvoiceDetailPage() {
         <div className="px-2 grid gap-4 sm:grid-cols-3 text-sm border border-border/50 bg-muted/20 p-4 rounded-xl">
           {invoice.approvedAt && (
             <div>
-              <p className="text-xs text-muted-foreground uppercase tracking-widest font-semibold mb-1">Approved On</p>
-              <p className="font-medium text-foreground">{fmtDate(invoice.approvedAt)}</p>
+              <p className="text-xs text-muted-foreground uppercase tracking-widest font-semibold mb-1">
+                Approved On
+              </p>
+              <p className="font-medium text-foreground">
+                {fmtDate(invoice.approvedAt)}
+              </p>
             </div>
           )}
           {invoice.paidAt && (
             <div>
-              <p className="text-xs text-muted-foreground uppercase tracking-widest font-semibold mb-1">Paid On</p>
-              <p className="font-medium text-foreground">{fmtDate(invoice.paidAt)}</p>
+              <p className="text-xs text-muted-foreground uppercase tracking-widest font-semibold mb-1">
+                Paid On
+              </p>
+              <p className="font-medium text-foreground">
+                {fmtDate(invoice.paidAt)}
+              </p>
             </div>
           )}
           {invoice.notes && (
             <div className="sm:col-span-2">
-              <p className="text-xs text-muted-foreground uppercase tracking-widest font-semibold mb-1">Notes</p>
+              <p className="text-xs text-muted-foreground uppercase tracking-widest font-semibold mb-1">
+                Notes
+              </p>
               <p className="text-foreground">{invoice.notes}</p>
             </div>
           )}
@@ -574,7 +790,10 @@ export default function InvoiceDetailPage() {
             <CardTitle className="flex items-center gap-2 text-lg font-bold">
               <ClipboardList className="h-5 w-5 text-muted-foreground" />
               Linked EOD Reports
-              <Badge variant="secondary" className="ml-2 font-medium bg-background border-border shadow-sm">
+              <Badge
+                variant="secondary"
+                className="ml-2 font-medium bg-background border-border shadow-sm"
+              >
                 {invoice.eodReports?.length ?? invoice.eodCount}
               </Badge>
             </CardTitle>
@@ -611,7 +830,10 @@ export default function InvoiceDetailPage() {
                 </TableHeader>
                 <TableBody>
                   {invoice.eodReports.map((eod: any) => (
-                    <TableRow key={eod._id} className="group hover:bg-muted/10 transition-colors">
+                    <TableRow
+                      key={eod._id}
+                      className="group hover:bg-muted/10 transition-colors"
+                    >
                       <TableCell className="font-medium text-sm">
                         {fmtDate(eod.date)}
                       </TableCell>
@@ -619,8 +841,8 @@ export default function InvoiceDetailPage() {
                         {eod.hoursWorked.toFixed(1)}h
                       </TableCell>
                       <TableCell className="tabular-nums text-sm text-muted-foreground">
-                        {(eod.regularHoursWorked ?? eod.hoursWorked).toFixed(1)}h /{" "}
-                        {(eod.overtimeHoursWorked ?? 0).toFixed(1)}h /{" "}
+                        {(eod.regularHoursWorked ?? eod.hoursWorked).toFixed(1)}
+                        h / {(eod.overtimeHoursWorked ?? 0).toFixed(1)}h /{" "}
                         {(eod.nightDifferentialHours ?? 0).toFixed(1)}h
                       </TableCell>
                       <TableCell>
@@ -664,7 +886,9 @@ export default function InvoiceDetailPage() {
               <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-muted/50 border border-border/50">
                 <ClipboardList className="h-8 w-8 text-muted-foreground/60" />
               </div>
-              <p className="text-base font-semibold">No Linking Data Available</p>
+              <p className="text-base font-semibold">
+                No Linking Data Available
+              </p>
               <p className="text-sm text-muted-foreground max-w-sm">
                 {isDraftOrCalculated
                   ? "Try recalculating to pull in newly approved EODs."

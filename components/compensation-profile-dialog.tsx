@@ -16,6 +16,13 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   useCreateCompensationProfile,
   useUpdateCompensationProfile,
 } from "@/hooks/useCompensationProfile";
@@ -34,6 +41,7 @@ interface CompensationProfileDialogProps {
 
 interface FormState {
   name: string;
+  currency: string;
   hourlyRate: string;
   overtimeRateMultiplier: string;
   sundayRateMultiplier: string;
@@ -58,6 +66,7 @@ function buildInitialForm(profile?: CompensationProfile | null): FormState {
   if (profile) {
     return {
       name: profile.name,
+      currency: profile.currency || "PHP",
       hourlyRate: String(profile.hourlyRate),
       overtimeRateMultiplier: String(profile.overtimeRateMultiplier),
       sundayRateMultiplier: String(profile.sundayRateMultiplier),
@@ -71,7 +80,9 @@ function buildInitialForm(profile?: CompensationProfile | null): FormState {
       isPagIbigEnabled: profile.isPagIbigEnabled,
       pagIbigDeductionFixedAmount: String(profile.pagIbigDeductionFixedAmount),
       isPhilHealthEnabled: profile.isPhilHealthEnabled,
-      philHealthDeductionFixedAmount: String(profile.philHealthDeductionFixedAmount),
+      philHealthDeductionFixedAmount: String(
+        profile.philHealthDeductionFixedAmount,
+      ),
       effectiveFrom: toDateInput(profile.effectiveFrom) || today(),
       effectiveTo: toDateInput(profile.effectiveTo),
     };
@@ -79,6 +90,7 @@ function buildInitialForm(profile?: CompensationProfile | null): FormState {
 
   return {
     name: "",
+    currency: "PHP",
     hourlyRate: "",
     overtimeRateMultiplier: "1.25",
     sundayRateMultiplier: "1.30",
@@ -143,10 +155,13 @@ export function CompensationProfileDialog({
   const createPayload: CreateCompensationProfileRequest = {
     name: form.name.trim(),
     businessId,
+    currency: form.currency,
     hourlyRate: toNumber(form.hourlyRate),
     overtimeRateMultiplier: toNumber(form.overtimeRateMultiplier),
     sundayRateMultiplier: toNumber(form.sundayRateMultiplier),
-    nightDifferentialRateMultiplier: toNumber(form.nightDifferentialRateMultiplier),
+    nightDifferentialRateMultiplier: toNumber(
+      form.nightDifferentialRateMultiplier,
+    ),
     isRiceAllowanceEligible: form.isRiceAllowanceEligible,
     riceAllowanceFixedAmount: form.isRiceAllowanceEligible
       ? toNumber(form.riceAllowanceFixedAmount)
@@ -197,10 +212,13 @@ export function CompensationProfileDialog({
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>
-              {isEditMode ? "Edit Compensation Profile" : "Create Compensation Profile"}
+              {isEditMode
+                ? "Edit Compensation Profile"
+                : "Create Compensation Profile"}
             </DialogTitle>
             <DialogDescription>
-              Manage shared compensation settings and link them to staff from staff details.
+              Manage shared compensation settings and link them to staff from
+              staff details.
             </DialogDescription>
           </DialogHeader>
 
@@ -239,6 +257,33 @@ export function CompensationProfileDialog({
                   disabled={isPending}
                   required
                 />
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="currency">
+                  Currency <span className="text-destructive">*</span>
+                </Label>
+                <Select
+                  value={form.currency}
+                  onValueChange={(value) =>
+                    setForm((prev) => ({ ...prev, currency: value }))
+                  }
+                  disabled={isPending}
+                >
+                  <SelectTrigger id="currency">
+                    <SelectValue placeholder="Select currency" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="PHP">PHP – Philippine Peso</SelectItem>
+                    <SelectItem value="USD">USD – US Dollar</SelectItem>
+                    <SelectItem value="EUR">EUR – Euro</SelectItem>
+                    <SelectItem value="GBP">GBP – British Pound</SelectItem>
+                    <SelectItem value="AUD">AUD – Australian Dollar</SelectItem>
+                    <SelectItem value="CAD">CAD – Canadian Dollar</SelectItem>
+                    <SelectItem value="JPY">JPY – Japanese Yen</SelectItem>
+                    <SelectItem value="SGD">SGD – Singapore Dollar</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
@@ -280,7 +325,9 @@ export function CompensationProfileDialog({
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="nightDiffMultiplier">Night Diff Multiplier</Label>
+                <Label htmlFor="nightDiffMultiplier">
+                  Night Diff Multiplier
+                </Label>
                 <Input
                   id="nightDiffMultiplier"
                   type="number"
@@ -320,7 +367,9 @@ export function CompensationProfileDialog({
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="riceAllowanceAmount">Rice Allowance Amount</Label>
+                <Label htmlFor="riceAllowanceAmount">
+                  Rice Allowance Amount
+                </Label>
                 <Input
                   id="riceAllowanceAmount"
                   type="number"
@@ -455,7 +504,10 @@ export function CompensationProfileDialog({
                   type="date"
                   value={form.effectiveTo}
                   onChange={(e) =>
-                    setForm((prev) => ({ ...prev, effectiveTo: e.target.value }))
+                    setForm((prev) => ({
+                      ...prev,
+                      effectiveTo: e.target.value,
+                    }))
                   }
                   disabled={isPending}
                 />
