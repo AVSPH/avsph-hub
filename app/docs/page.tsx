@@ -105,7 +105,7 @@ function DocsInner() {
           </Sheet>
 
           {/* Logo mark */}
-          <div className="hidden md:flex w-10 h-10   rounded-[9px] items-center justify-center flex-shrink-0">
+          <div className="hidden md:flex w-8 h-8   rounded-[9px] items-center justify-center flex-shrink-0">
             <img
               src="/assets/logo.jpeg"
               alt="TM"
