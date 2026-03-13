@@ -41,12 +41,14 @@ function DocsInner() {
     currentData[0].items[0].id,
   );
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isAssessmentMode, setIsAssessmentMode] = useState(false);
 
-  // Re-sync active category when top link changes if necessary
+  // Re-sync active category and reset assessment mode when top link changes
   useEffect(() => {
     const newData = docsData[activeTopLink] || docsData.onboarding;
     if (!newData[0].items.some(item => item.id === activeCategory)) {
         setActiveCategory(newData[0].items[0].id);
+        setIsAssessmentMode(false);
     }
   }, [activeTopLink]);
 
@@ -59,18 +61,21 @@ function DocsInner() {
 
   const handleTopLinkSelect = (id: string) => {
     setActiveTopLink(id);
+    setIsAssessmentMode(false);
     const newData = docsData[id] || docsData.onboarding;
     setActiveCategory(newData[0].items[0].id);
   };
 
-  const handleCategorySelect = (id: string) => {
+  const handleCategorySelect = (id: string, isAssessment?: boolean) => {
     setActiveCategory(id);
+    setIsAssessmentMode(!!isAssessment);
     setIsMobileMenuOpen(false);
   };
 
   const handleSearchResultSelect = (moduleId: string, categoryId: string) => {
     setActiveTopLink(moduleId);
     setActiveCategory(categoryId);
+    setIsAssessmentMode(false);
   };
 
   const isLoading = isLoadingStaff || isLoadingAdmin;
@@ -99,6 +104,7 @@ function DocsInner() {
                 activeTopLink={activeTopLink}
                 setActiveTopLink={handleTopLinkSelect}
                 sections={currentData}
+                isAssessmentMode={isAssessmentMode}
                 className="border-none w-full"
               />
             </SheetContent>
@@ -162,10 +168,11 @@ function DocsInner() {
         <aside className="hidden md:flex w-[260px] flex-shrink-0 flex-col border-r border-sidebar-border bg-sidebar overflow-hidden">
           <DocsSidebar
             activeCategory={activeCategory}
-            setActiveCategory={setActiveCategory}
+            setActiveCategory={handleCategorySelect}
             activeTopLink={activeTopLink}
             setActiveTopLink={handleTopLinkSelect}
             sections={currentData}
+            isAssessmentMode={isAssessmentMode}
             className="h-full"
           />
         </aside>
@@ -174,9 +181,10 @@ function DocsInner() {
         <main className="flex-1 overflow-hidden relative bg-background">
           <DocsContent 
              activeCategory={activeCategory} 
-             setActiveCategory={setActiveCategory} 
+             setActiveCategory={handleCategorySelect} 
              sections={currentData} 
              activeTopLinkInfo={currentTopLinkInfo}
+             isAssessmentMode={isAssessmentMode}
           />
         </main>
       </div>

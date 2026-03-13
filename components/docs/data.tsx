@@ -1,4 +1,4 @@
-import { BookOpen, CreditCard, ShieldCheck, FileText, CheckCircle, Clock, Key, LucideIcon, List, Users, Calendar, Mic, Plane, Mail, MessageSquare, ShoppingBag, Target, Shield, Heart, Zap, Coffee, Phone, PlaneTakeoff, Globe, Home, Pencil, Send, AlertTriangle, CreditCard as CardIcon, Thermometer, Wind, Wrench, AlertCircle, Info, Sparkles, Droplets, Star, Bug, Waves, Plug, Leaf } from "lucide-react";
+import { BookOpen, CreditCard, ShieldCheck, FileText, CheckCircle, Clock, Key, LucideIcon, List, Users, Calendar, Mic, Plane, Mail, MessageSquare, ShoppingBag, Target, Shield, Heart, Zap, Coffee, Phone, PlaneTakeoff, Globe, Home, Pencil, Send, AlertTriangle, CreditCard as CardIcon, Thermometer, Wind, Wrench, AlertCircle, Info, Sparkles, Droplets, Star, Bug, Waves, Plug, Leaf, Bot, Cpu, Layers, Palette, Layout, Play, Search, Columns, Book, Hash } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ReactNode } from "react";
 
@@ -8503,6 +8503,90 @@ export const BUSINESS_GUIDES = [
     title: "Garage Door Guide",
     desc: "Training Resource",
   },
+];
+
+export const AI_TOOLS = [
+  {
+    id: "chatgpt",
+    label: "ChatGPT",
+    logo: "https://svgl.app/library/chatgpt.svg",
+    title: "ChatGPT",
+    desc: "Conversational tasks, generation & logic",
+    url: "https://chat.openai.com",
+    category: "AI"
+  },
+  {
+    id: "claude",
+    label: "Claude",
+    logo: "https://svgl.app/library/claude.svg",
+    title: "Claude",
+    desc: "Nuanced writing & context analysis",
+    url: "https://claude.ai",
+    category: "AI"
+  },
+  {
+    id: "perplexity",
+    label: "Perplexity",
+    logo: "https://svgl.app/library/perplexity.svg",
+    title: "Perplexity",
+    desc: "AI search with cited sources",
+    url: "https://perplexity.ai",
+    category: "AI"
+  },
+  {
+    id: "canva",
+    label: "Canva",
+    logo: "https://svgl.app/library/canva.svg",
+    title: "Canva",
+    desc: "AI-powered creative design",
+    url: "https://canva.com",
+    category: "Design"
+  },
+  {
+    id: "gdocs",
+    label: "Google Docs",
+    logo: "https://svgl.app/library/google-docs.svg",
+    title: "Google Docs",
+    desc: "Cloud collaborative writing",
+    url: "https://docs.google.com",
+    category: "Tools"
+  },
+  {
+    id: "excel",
+    label: "Excel / Sheets",
+    logo: "https://svgl.app/library/google-sheets.svg",
+    title: "Excel / Sheets",
+    desc: "Data analysis & organization",
+    url: "https://sheets.google.com",
+    category: "Tools"
+  },
+  {
+    id: "slack",
+    label: "Slack",
+    logo: "https://svgl.app/library/slack.svg",
+    title: "Slack",
+    desc: "Team communication & hub",
+    url: "https://slack.com",
+    category: "Tools"
+  },
+  {
+    id: "notion",
+    label: "Notion",
+    logo: "https://svgl.app/library/notion.svg",
+    title: "Notion",
+    desc: "Notes, docs & database workspace",
+    url: "https://notion.so",
+    category: "Tools"
+  },
+  {
+    id: "loom",
+    label: "Loom",
+    logo: "https://svgl.app/library/loom.svg",
+    title: "Loom",
+    desc: "Async video screen messaging",
+    url: "https://loom.com",
+    category: "Tools"
+  }
 ];
 
 export const TOP_LINKS = [...MAIN_DOCS, ...BUSINESS_GUIDES];

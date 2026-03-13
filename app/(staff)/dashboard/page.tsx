@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import {
   Card,
@@ -6,8 +8,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Lightbulb, Wrench } from "lucide-react";
-import { MAIN_DOCS, BUSINESS_GUIDES } from "@/components/docs/data";
+import { Lightbulb, Wrench, Users } from "lucide-react";
+import { MAIN_DOCS, BUSINESS_GUIDES, AI_TOOLS } from "@/components/docs/data";
 
 export default function StaffDashboardPage() {
   return (
@@ -83,9 +85,67 @@ export default function StaffDashboardPage() {
           </div>
         </section>
 
+        <section className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <h3 className="text-xl font-semibold tracking-tight">AI & Digital Tools</h3>
+              <p className="text-muted-foreground text-sm">
+                Essential applications and AI models to supercharge your workflow.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {AI_TOOLS.map((tool) => {
+              return (
+                <a
+                  key={tool.id}
+                  href={tool.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="transition-all hover:scale-[1.02]"
+                >
+                  <Card className="h-full hover:border-primary/50 cursor-pointer transition-colors group relative overflow-hidden">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <div className="flex flex-col">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-primary mb-0.5 opacity-70">
+                          {tool.category}
+                        </span>
+                        <CardTitle className="text-sm font-semibold">
+                          {tool.label}
+                        </CardTitle>
+                      </div>
+                      <div className="h-8 w-8 flex items-center justify-center bg-muted/50 rounded-lg p-1 group-hover:bg-primary/10 transition-colors overflow-hidden">
+                        {tool.logo ? (
+                          <img 
+                            src={tool.logo} 
+                            alt={`${tool.label} logo`} 
+                            className="h-full w-full object-contain"
+                            onError={(e) => {
+                              // Fallback if image fails to load
+                              e.currentTarget.style.display = 'none';
+                              e.currentTarget.parentElement?.querySelector('.fallback-icon')?.classList.remove('hidden');
+                            }}
+                          />
+                        ) : null}
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-base font-bold mb-1 group-hover:text-primary transition-colors">{tool.title}</div>
+                      <p className="text-xs text-muted-foreground line-clamp-2">
+                        {tool.desc}
+                      </p>
+                    </CardContent>
+                  </Card>
+                </a>
+              );
+            })}
+          </div>
+        </section>
+
         <div className="mt-8">
           <h3 className="text-xl font-semibold tracking-tight mb-4">Coming Soon</h3>
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             {/* Placeholder for Tips */}
             <Card className="h-full opacity-60 border-dashed">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -102,18 +162,17 @@ export default function StaffDashboardPage() {
               </CardContent>
             </Card>
 
-            {/* Placeholder for Tools */}
             <Card className="h-full opacity-60 border-dashed">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Recommended Tools
+                  Client CRM
                 </CardTitle>
-                <Wrench className="h-4 w-4 text-muted-foreground" />
+                <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-xl font-bold mb-1">Coming Soon</div>
                 <p className="text-xs text-muted-foreground">
-                  Software and extensions to enhance your workflow.
+                  Manage client information and project status.
                 </p>
               </CardContent>
             </Card>

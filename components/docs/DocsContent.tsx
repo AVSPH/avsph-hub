@@ -1,17 +1,24 @@
 import React from "react";
 import { DocGroup } from "./data";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { DocsAssessment } from "./DocsAssessment";
 
 interface DocsContentProps {
     activeCategory: string;
-    setActiveCategory: (id: string) => void;
+    setActiveCategory: (id: string, isAssessment?: boolean) => void;
     activeTopLinkInfo: any;
     sections: DocGroup[];
+    isAssessmentMode?: boolean;
 }
 
-export function DocsContent({ activeCategory, setActiveCategory, activeTopLinkInfo, sections }: DocsContentProps) {
+export function DocsContent({ 
+    activeCategory, 
+    setActiveCategory, 
+    activeTopLinkInfo, 
+    sections,
+    isAssessmentMode = false 
+}: DocsContentProps) {
     const allCategories = sections.flatMap(s => s.items);
     const currentIndex = allCategories.findIndex(c => c.id === activeCategory);
     
@@ -21,6 +28,39 @@ export function DocsContent({ activeCategory, setActiveCategory, activeTopLinkIn
 
     // Determine parent section for breadcrumbs
     const parentSection = sections.find(s => s.items.some(c => c.id === activeCategory));
+
+    if (isAssessmentMode) {
+        return (
+            <ScrollArea className="h-full w-full bg-muted/5">
+                <div className="flex justify-center w-full min-h-full">
+                    <div className="flex w-full max-w-4xl px-8 md:px-10 py-9 lg:py-10">
+                        <div className="w-full space-y-8 animate-in fade-in slide-in-from-bottom-3 duration-400">
+                            {/* Assessment Breadcrumb */}
+                            <header className="space-y-1">
+                                <div className="flex items-center gap-2 text-xs text-muted-foreground font-mono uppercase tracking-widest mb-3">
+                                    <span>{activeTopLinkInfo?.title || "Docs"}</span>
+                                    <span className="opacity-40">/</span>
+                                    <span>{category.label}</span>
+                                    <span className="opacity-40">/</span>
+                                    <span className="text-primary font-bold">Assessment</span>
+                                </div>
+                                <div className="text-[24px] font-extrabold text-foreground tracking-tight leading-tight uppercase">
+                                    Knowledge Verification
+                                </div>
+                                <p className="text-[13px] text-muted-foreground mt-1">
+                                    Complete this assessment to verify your understanding of the {category.label}.
+                                </p>
+                            </header>
+
+                            <div className="bg-background rounded-2xl border shadow-sm p-6 md:p-10">
+                                <DocsAssessment guideId={activeTopLinkInfo.id} />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </ScrollArea>
+        );
+    }
 
     const prevCategory = currentIndex > 0 ? allCategories[currentIndex - 1] : null;
     const nextCategory = currentIndex < allCategories.length - 1 ? allCategories[currentIndex + 1] : null;

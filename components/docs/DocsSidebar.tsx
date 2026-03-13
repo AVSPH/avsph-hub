@@ -13,16 +13,19 @@ import {
     CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { TOP_LINKS } from "./data";
-import { ChevronDown, ChevronsUpDown } from "lucide-react";
+import { ChevronDown, ChevronsUpDown, ClipboardCheck } from "lucide-react";
 
 interface DocsSidebarProps {
     activeCategory: string;
-    setActiveCategory: (id: string) => void;
+    setActiveCategory: (id: string, isAssessment?: boolean) => void;
     activeTopLink: string;
     setActiveTopLink: (id: string) => void;
     sections: any[];
     className?: string;
+    isAssessmentMode?: boolean;
 }
+
+import { ASSESSMENT_DATA } from "./assessment.data";
 
 export function DocsSidebar({ 
     activeCategory, 
@@ -30,7 +33,8 @@ export function DocsSidebar({
     activeTopLink,
     setActiveTopLink,
     sections: propSections, 
-    className 
+    className,
+    isAssessmentMode = false
 }: DocsSidebarProps) {
     const currentTopLinkInfo = TOP_LINKS.find((link) => link.id === activeTopLink)!;
     const CurrentIcon = currentTopLinkInfo.icon;
@@ -94,28 +98,58 @@ export function DocsSidebar({
                                 {section.items.map((category: any) => {
                                     const Icon = category.icon;
                                     const isActive = activeCategory === category.id;
+                                    const isAssessmentActive = isActive && isAssessmentMode;
+                                    const isGuideActive = isActive && !isAssessmentMode;
+
                                     return (
-                                        <button
-                                            key={category.id}
-                                            onClick={() => setActiveCategory(category.id)}
-                                            className={cn(
-                                                "flex items-center gap-3 px-3 py-2 text-[13px] font-medium transition-all duration-200 cursor-pointer w-full text-left rounded-md outline-none",
-                                                isActive
-                                                    ? "text-primary bg-primary/10 font-semibold"
-                                                    : "text-muted-foreground bg-transparent hover:text-foreground hover:bg-muted/50 focus-visible:bg-muted/50",
-                                            )}
-                                        >
-                                            <Icon className={cn(
-                                                "h-4 w-4 flex-shrink-0",
-                                                isActive ? "text-primary" : "text-muted-foreground/70"
-                                            )} />
-                                            <span className="leading-snug truncate select-none">{category.label}</span>
-                                        </button>
+                                        <div key={category.id} className="flex flex-col gap-0.5">
+                                            <button
+                                                onClick={() => setActiveCategory(category.id, false)}
+                                                className={cn(
+                                                    "flex items-center gap-3 px-3 py-2 text-[13px] font-medium transition-all duration-200 cursor-pointer w-full text-left rounded-md outline-none",
+                                                    isGuideActive
+                                                        ? "text-primary bg-primary/10 font-semibold"
+                                                        : "text-muted-foreground bg-transparent hover:text-foreground hover:bg-muted/50 focus-visible:bg-muted/50",
+                                                )}
+                                            >
+                                                <Icon className={cn(
+                                                    "h-4 w-4 flex-shrink-0",
+                                                    isGuideActive ? "text-primary" : "text-muted-foreground/70"
+                                                )} />
+                                                <span className="leading-snug truncate select-none">{category.label}</span>
+                                            </button>
+                                        </div>
                                     );
                                 })}
                             </CollapsibleContent>
                         </Collapsible>
                     ))}
+
+                    {/* Module Assessment - Single link per guide */}
+                    {ASSESSMENT_DATA[activeTopLink] && (
+                        <div className="mt-4 pt-4 border-t border-border/40 px-3">
+                            <button
+                                onClick={() => setActiveCategory(activeCategory, true)}
+                                className={cn(
+                                    "flex items-center gap-3 px-3 py-2 text-[13px] font-medium transition-all duration-200 cursor-pointer w-full text-left rounded-md outline-none group",
+                                    isAssessmentMode
+                                        ? "text-primary bg-primary/10 font-semibold shadow-sm"
+                                        : "text-muted-foreground bg-transparent hover:text-primary hover:bg-primary/5",
+                                )}
+                            >
+                                <div className={cn(
+                                    "flex items-center justify-center w-5 h-5 rounded-md border transition-colors",
+                                    isAssessmentMode ? "bg-primary border-primary text-primary-foreground" : "bg-background border-border group-hover:border-primary/50 text-muted-foreground/50 group-hover:text-primary"
+                                )}>
+                                    <ClipboardCheck className="h-3 w-3" />
+                                </div>
+                                <div className="flex flex-col gap-0 select-none">
+                                    <span className="leading-snug truncate">Take Assessment</span>
+                                    <span className="text-[10px] opacity-70">Verify your knowledge</span>
+                                </div>
+                            </button>
+                        </div>
+                    )}
                 </div>
             </ScrollArea>
         </div>
