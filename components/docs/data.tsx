@@ -35,7 +35,7 @@ export const onboardingSections: DocGroup[] = [
                 <p className="text-lg italic font-serif leading-relaxed text-foreground/80">
                   "We imagine a world where running a business feels easier, so owners can focus on what they love and grow with confidence."
                 </p>
-                <p>What drives us every single day at TalentMucho is the commitment to simplify operations for business owners.</p>
+                <p>What drives us every single day at AVSPH is the commitment to simplify operations for business owners.</p>
               </div>
             )
           },
@@ -61,10 +61,10 @@ export const onboardingSections: DocGroup[] = [
             content: (
               <div className="space-y-2 text-muted-foreground">
                 <p>
-                  Create your company email, format is <code className="bg-muted px-1.5 py-0.5 rounded text-foreground">yourname.tm@gmail.com</code> (example: <code className="bg-muted px-1.5 py-0.5 rounded text-foreground">juandelacruz.tm@gmail.com</code>).
+                  Create your company email, format is <code className="bg-muted px-1.5 py-0.5 rounded text-foreground">yourname.avs@gmail.com</code> (example: <code className="bg-muted px-1.5 py-0.5 rounded text-foreground">juandelacruz.avs@gmail.com</code>).
                 </p>
                 <div className="p-4 bg-destructive/10 text-destructive border border-destructive/20 rounded-lg">
-                  <p className="font-medium">This new email will be utilized for client and TalentMucho communications. You are not allowed to use personal email.</p>
+                  <p className="font-medium">This new email will be utilized for client and AVSPH communications. You are not allowed to use personal email.</p>
                 </div>
               </div>
             )
@@ -73,7 +73,7 @@ export const onboardingSections: DocGroup[] = [
             title: "2. Fill out Database",
             content: (
               <div className="space-y-4 text-muted-foreground">
-                <p>Please fill out the TalentMucho VA Database, the information gathered is solely for agency purposes.</p>
+                <p>Please fill out the AVSPH VA Database, the information gathered is solely for agency purposes.</p>
                 <a
                   href="https://docs.google.com/forms/d/e/1FAIpQLSch8623fnUZMxeU3l1TU47Amxg70qnNbz_SmBYhc3jKssks-g/viewform"
                   target="_blank"
@@ -89,7 +89,7 @@ export const onboardingSections: DocGroup[] = [
             title: "3. Inform HR",
             content: (
               <div className="space-y-4 text-muted-foreground">
-                <p>Inform HR of your new email by sending an email to <a href="mailto:admin@talentmucho.com" className="text-primary hover:underline">admin@talentmucho.com</a></p>
+                <p>Inform HR of your new email by sending an email to <a href="mailto:admin@av sph.com" className="text-primary hover:underline">admin@advancedvirtualstaff.com</a></p>
 
                 <div className="bg-muted/50 p-4 rounded-lg border font-mono text-sm space-y-4 text-foreground relative">
                   <div>
@@ -172,7 +172,7 @@ export const onboardingSections: DocGroup[] = [
                   </h4>
                   <ul className="list-disc pl-5 space-y-1">
                     <li>Download application as instructed by HR</li>
-                    <li>Log in using TalentMucho credentials</li>
+                    <li>Log in using AVSPH credentials</li>
                     <li>Configure idle time and screenshot settings</li>
                   </ul>
                 </div>
@@ -227,7 +227,7 @@ export const onboardingSections: DocGroup[] = [
                        <Mail className="w-4 h-4 text-primary" /> EOD Submission
                     </h4>
                     <ul className="list-disc pl-5 space-y-1 text-sm text-muted-foreground">
-                      <li>Send to: <code className="text-foreground">eod@talentmucho.com</code></li>
+                      <li>Send to: <code className="text-foreground">eod@advancedvirtualstaff.com</code></li>
                       <li>Subject: [Date] in client timezone</li>
                     </ul>
                   </div>
@@ -361,7 +361,7 @@ export const onboardingSections: DocGroup[] = [
                     </h4>
                     <p className="text-xs italic mb-2">During contract + 2 years after</p>
                     <ul className="list-disc pl-4 space-y-1 text-xs">
-                      <li>No similar businesses to TalentMucho</li>
+                      <li>No similar businesses to AVSPH</li>
                       <li>Applies to current/former client businesses</li>
                     </ul>
                   </div>
@@ -371,12 +371,12 @@ export const onboardingSections: DocGroup[] = [
                     </h4>
                     <p className="text-xs italic mb-2">2 years after contract ends</p>
                     <ul className="list-disc pl-4 space-y-1 text-xs">
-                      <li>Do not recruit any TalentMucho staff/agents</li>
+                      <li>Do not recruit any AVSPH staff/agents</li>
                     </ul>
                   </div>
                 </div>
                 <div className="p-4 bg-muted/40 text-xs rounded-lg border border-dashed">
-                  <strong>Financial Penalties:</strong> TalentMucho staff hired through you → ₱500,000 damages. Client solicited away → reimburse 2 years of lost profits.
+                  <strong>Financial Penalties:</strong> AVSPH staff hired through you → ₱500,000 damages. Client solicited away → reimburse 2 years of lost profits.
                 </div>
               </div>
             ),
@@ -387,7 +387,7 @@ export const onboardingSections: DocGroup[] = [
               <div className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {[
-                    "Do NOT work for clients outside TalentMucho",
+                    "Do NOT work for clients outside AVSPH",
                     "Do NOT engage with competitors",
                     "Do NOT solicit or accept side jobs",
                     "Do NOT receive direct client payments"
@@ -448,7 +448,7 @@ export const onboardingSections: DocGroup[] = [
                   <h4 className="font-semibold text-foreground mb-2">Invoice Submission Instructions</h4>
                   <p className="italic mb-2 text-sm">Note: Placeholder for invoicing procedure.</p>
                   <ul className="list-disc pl-5 space-y-2 text-sm">
-                    <li><strong className="text-foreground">Where to send:</strong> billing@talentmucho.com</li>
+                    <li><strong className="text-foreground">Where to send:</strong> billing@advancedvirtualstaff.com</li>
                     <li><strong className="text-foreground">Subject Line Format:</strong> Invoice - [Your Name] - [Cut-off Date]</li>
                     <li><strong className="text-foreground">Cut-off Dates:</strong> 15th and 30th of the month.</li>
                     <li><strong className="text-foreground">Template:</strong> Link to approved invoice template.</li>
@@ -606,7 +606,7 @@ export const onboardingSections: DocGroup[] = [
                 <div className="bg-muted/30 p-4 rounded-lg border">
                   <h4 className="font-semibold text-foreground mb-2">How to Login:</h4>
                   <ol className="list-decimal pl-5 space-y-2">
-                    <li>Navigate to the TalentMucho Dashboard Login Page.</li>
+                    <li>Navigate to the AVSPH Dashboard Login Page.</li>
                     <li>Ensure the <strong className="text-foreground">Staff</strong> tab is selected at the top of the login form.</li>
                     <li>Enter the Email Address and temporary Password from the HR email.</li>
                     <li>Click <strong className="text-foreground">Sign In</strong>.</li>
@@ -680,13 +680,13 @@ export const homeSections: DocGroup[] = [
         icon: Home,
         sections: [
           {
-            title: "Welcome to TalentMucho Documentation",
+            title: "Welcome to AVSPH Documentation",
             content: (
               <div className="space-y-8 py-4">
                 <div className="space-y-4 text-center">
-                  <h2 className="text-4xl font-extrabold tracking-tight text-primary">TalentMucho Command Center</h2>
+                  <h2 className="text-4xl font-extrabold tracking-tight text-primary">AVSPH Command Center</h2>
                   <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                    Your complete guide to roles, responsibilities, and operating procedures within the TalentMucho ecosystem.
+                    Your complete guide to roles, responsibilities, and operating procedures within the AVSPH ecosystem.
                   </p>
                 </div>
 
@@ -8509,7 +8509,7 @@ export const AI_TOOLS = [
   {
     id: "chatgpt",
     label: "ChatGPT",
-    logo: "https://svgl.app/library/chatgpt.svg",
+    logo: "https://cdn.simpleicons.org/chatbot",
     title: "ChatGPT",
     desc: "Conversational tasks, generation & logic",
     url: "https://chat.openai.com",
@@ -8518,7 +8518,7 @@ export const AI_TOOLS = [
   {
     id: "claude",
     label: "Claude",
-    logo: "https://svgl.app/library/claude.svg",
+    logo: "https://cdn.simpleicons.org/anthropic",
     title: "Claude",
     desc: "Nuanced writing & context analysis",
     url: "https://claude.ai",
@@ -8545,7 +8545,7 @@ export const AI_TOOLS = [
   {
     id: "gdocs",
     label: "Google Docs",
-    logo: "https://svgl.app/library/google-docs.svg",
+    logo: "https://cdn.simpleicons.org/googledocs",
     title: "Google Docs",
     desc: "Cloud collaborative writing",
     url: "https://docs.google.com",

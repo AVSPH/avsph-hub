@@ -24,7 +24,6 @@ import { Input } from "@/components/ui/input";
 // Base navigation items for all admins
 const baseNavigation = [
   { name: "Overview", href: "/overview" },
-  { name: "Staff", href: "/staff" },
 ];
 
 // Super-admin only navigation items

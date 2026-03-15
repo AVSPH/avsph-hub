@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Clock, LogOut, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -42,8 +43,15 @@ export function StaffTopbar() {
                         href="/staff/dashboard"
                         className="flex items-center gap-2 font-semibold"
                     >
-                        <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary text-primary-foreground">
-                            <Clock className="h-4 w-4" />
+                        <div className="flex h-7 w-7 items-center justify-center rounded-md border border-border bg-background overflow-hidden">
+                            <Image
+                                src="/assets/logo.jpeg"
+                                alt="Company logo"
+                                width={28}
+                                height={28}
+                                className="h-full w-full object-contain"
+                                priority
+                            />
                         </div>
                     </Link>
 

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Eye, EyeOff, Shield, Users, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,9 +41,15 @@ export default function LoginPage() {
       <div className="w-full max-w-sm space-y-8 relative z-10">
         {/* Header */}
         <div className="flex flex-col items-center text-center space-y-2">
-          <div className="h-10 w-10 bg-foreground rounded-lg flex items-center justify-center mb-4 shadow-sm">
-            {/* Placeholder Logo Icon */}
-            <div className="h-4 w-4 bg-background rounded-sm" />
+          <div className="h-12 w-12 rounded-lg flex items-center justify-center mb-4 shadow-sm overflow-hidden bg-background border border-border">
+            <Image
+              src="/assets/logo.jpeg"
+              alt="Company logo"
+              width={48}
+              height={48}
+              className="h-full w-full object-contain"
+              priority
+            />
           </div>
           <h2 className="text-2xl font-semibold tracking-tight text-foreground">
             Welcome back
