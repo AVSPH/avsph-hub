@@ -10,7 +10,7 @@ export default function TermsOfServicePage() {
             className="inline-flex items-center gap-2 rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
           >
             <span aria-hidden="true">←</span>
-            Back to login
+            Back
           </Link>
         </div>
         <header className="space-y-3">

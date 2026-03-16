@@ -193,14 +193,14 @@ export default function LoginPage() {
         <p className="text-center text-xs text-muted-foreground">
           By clicking continue, you agree to our{" "}
           <Link
-            href="#"
+            href="/terms-of-service"
             className="underline underline-offset-4 hover:text-foreground transition-colors"
           >
             Terms of Service
           </Link>{" "}
           and{" "}
           <Link
-            href="#"
+            href="/privacy-policy"
             className="underline underline-offset-4 hover:text-foreground transition-colors"
           >
             Privacy Policy
