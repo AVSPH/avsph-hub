@@ -1,5 +1,64 @@
-﻿import { BookOpen, CreditCard, ShieldCheck, FileText, CheckCircle, Clock, Key, LucideIcon, List, Users, Calendar, Mic, Plane, Mail, MessageSquare, ShoppingBag, Target, Shield, Heart, Zap, Coffee, Phone, PlaneTakeoff, Globe, Home, Pencil, Send, AlertTriangle, CreditCard as CardIcon, Thermometer, Wind, Wrench, AlertCircle, Info, Sparkles, Droplets, Star, Bug, Waves, Plug, Leaf, Bot, Cpu, Layers, Palette, Layout, Play, Search, Columns, Book, Hash } from "lucide-react";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+﻿import {
+  BookOpen,
+  CreditCard,
+  ShieldCheck,
+  FileText,
+  CheckCircle,
+  Clock,
+  Key,
+  LucideIcon,
+  List,
+  Users,
+  Calendar,
+  Mic,
+  Plane,
+  Mail,
+  MessageSquare,
+  ShoppingBag,
+  Target,
+  Shield,
+  Heart,
+  Zap,
+  Coffee,
+  Phone,
+  PlaneTakeoff,
+  Globe,
+  Home,
+  Pencil,
+  Send,
+  AlertTriangle,
+  CreditCard as CardIcon,
+  Thermometer,
+  Wind,
+  Wrench,
+  AlertCircle,
+  Info,
+  Sparkles,
+  Droplets,
+  Star,
+  Bug,
+  Waves,
+  Plug,
+  Leaf,
+  Bot,
+  Cpu,
+  Layers,
+  Palette,
+  Layout,
+  Play,
+  Search,
+  Columns,
+  Book,
+  Hash,
+} from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { ReactNode } from "react";
 import { DocGroup } from "./types";
 export const onboardingSections: DocGroup[] = [
@@ -195,17 +254,6 @@ export const onboardingSections: DocGroup[] = [
                     <li>Free from background noise and distractions</li>
                   </ul>
                 </div>
-
-                <div className="mt-4 p-4 border border-dashed rounded-lg bg-muted/20 text-muted-foreground">
-                  <h4 className="font-semibold text-foreground mb-2 flex items-center gap-2">
-                    <Clock className="w-4 h-4" /> Team Logger Setup
-                  </h4>
-                  <ul className="list-disc pl-5 space-y-1">
-                    <li>Download application as instructed by HR</li>
-                    <li>Log in using AVSPH credentials</li>
-                    <li>Configure idle time and screenshot settings</li>
-                  </ul>
-                </div>
               </div>
             ),
           },
@@ -260,81 +308,87 @@ export const onboardingSections: DocGroup[] = [
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="p-4 border rounded-lg">
                     <h4 className="font-semibold mb-2 flex items-center gap-2">
-                      <Phone className="w-4 h-4 text-primary" /> Login / Logout
+                      <Phone className="w-4 h-4 text-primary" /> Daily
+                      Attendance
                     </h4>
                     <ul className="list-disc pl-5 space-y-1 text-sm text-muted-foreground">
-                      <li>Log IN in the WhatsApp group</li>
+                      <li>Log IN in the WhatsApp group at shift start</li>
                       <li>Log OUT at end of shift</li>
-                      <li>Use Team Logger for time tracking</li>
+                      <li>
+                        Keep your work hours aligned with your client shift
+                      </li>
                     </ul>
                   </div>
                   <div className="p-4 border rounded-lg">
                     <h4 className="font-semibold mb-2 flex items-center gap-2">
                       <Mail className="w-4 h-4 text-primary" /> EOD Submission
+                      (Dashboard)
                     </h4>
                     <ul className="list-disc pl-5 space-y-1 text-sm text-muted-foreground">
+                      <li>Go to Staff Dashboard and open My EOD Reports</li>
+                      <li>Click Submit EOD to open the form</li>
                       <li>
-                        Send to:{" "}
-                        <code className="text-foreground">
-                          avsph.eod@gmail.com
-                        </code>
+                        If status is Needs Revision, use the Resubmit action
                       </li>
-                      <li>Subject: [Date] in client timezone</li>
                     </ul>
                   </div>
                 </div>
 
                 <div className="bg-muted/50 p-6 rounded-xl border border-border">
                   <h4 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-4">
-                    EOD Report Template
+                    EOD Form Fields (Actual Dashboard)
                   </h4>
-                  <div className="space-y-4 font-mono text-xs text-foreground leading-relaxed">
-                    <div className="text-primary/60 font-sans italic border-b pb-2 mb-2">
-                      // Subject Line
-                    </div>
-                    <div className="flex gap-2">
-                      <span className="text-muted-foreground w-16 shrink-0 underline decoration-muted/40">
-                        Subject:
-                      </span>{" "}
-                      [Date] — [Client TZ]
-                    </div>
-                    <br />
-                    <div className="flex gap-2">
-                      <span className="text-muted-foreground w-16 shrink-0 underline decoration-muted/40">
-                        Logout:
-                      </span>{" "}
-                      [Date]
-                    </div>
-                    <div className="flex gap-2">
-                      <span className="text-muted-foreground w-16 shrink-0 underline decoration-muted/40">
-                        Name:
-                      </span>{" "}
-                      [Your Name]
-                    </div>
-                    <div className="flex gap-2">
-                      <span className="text-muted-foreground w-16 shrink-0 underline decoration-muted/40">
-                        Break:
-                      </span>{" "}
-                      [Duration]
-                    </div>
-                    <div className="flex gap-2">
-                      <span className="text-muted-foreground w-16 shrink-0 underline decoration-muted/40">
-                        Appt:
-                      </span>{" "}
-                      [Yes/No]
-                    </div>
-                    <div className="flex gap-2">
-                      <span className="text-muted-foreground w-16 shrink-0 underline decoration-muted/40">
-                        Hours:
-                      </span>{" "}
-                      [Rendered]
-                    </div>
-                    <br />
-                    <div>
-                      <div className="text-muted-foreground underline mb-1">
-                        Tasks Completed:
-                      </div>
-                      <div className="text-primary italic pl-4">- [Task 1]</div>
+                  <div className="space-y-3 text-sm text-muted-foreground">
+                    <ul className="list-disc pl-5 space-y-1">
+                      <li>
+                        <strong className="text-foreground">Date</strong>{" "}
+                        (required)
+                      </li>
+                      <li>
+                        <strong className="text-foreground">
+                          Regular Hours
+                        </strong>{" "}
+                        (required, 0-24)
+                      </li>
+                      <li>
+                        <strong className="text-foreground">
+                          Overtime Hours
+                        </strong>{" "}
+                        (optional, default 0)
+                      </li>
+                      <li>
+                        <strong className="text-foreground">
+                          Night Differential Hours
+                        </strong>{" "}
+                        (optional)
+                      </li>
+                      <li>
+                        <strong className="text-foreground">
+                          Tasks Completed
+                        </strong>{" "}
+                        (required)
+                      </li>
+                      <li>
+                        <strong className="text-foreground">
+                          Worked On-Site
+                        </strong>{" "}
+                        (checkbox)
+                      </li>
+                      <li>
+                        <strong className="text-foreground">Challenges</strong>,{" "}
+                        <strong className="text-foreground">
+                          Next Day Plan
+                        </strong>
+                        , and{" "}
+                        <strong className="text-foreground">
+                          Additional Notes
+                        </strong>{" "}
+                        (optional)
+                      </li>
+                    </ul>
+                    <div className="p-3 rounded-md border border-border/60 bg-background text-xs">
+                      Total Hours Worked is auto-computed by the system: Regular
+                      + Overtime.
                     </div>
                   </div>
                 </div>
@@ -423,7 +477,7 @@ export const onboardingSections: DocGroup[] = [
                       <strong className="text-foreground">
                         Payroll Issues:
                       </strong>{" "}
-                      [Payroll Email/Contact]
+                      accounting@advancedvirtualsaff.com
                     </li>
                     <li>
                       <strong className="text-foreground">

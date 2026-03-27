@@ -443,7 +443,7 @@ export function InvoicePDFDocument({ invoice }: { invoice: any }) {
         <View style={styles.panelRow}>
           <View style={styles.panel}>
             <Text style={styles.panelTitle}>
-              Virtual Assistance Information
+              Virtual Assistant Information
             </Text>
             <Text style={styles.prominentText}>{staffFullName}</Text>
             <View style={styles.infoRow}>
