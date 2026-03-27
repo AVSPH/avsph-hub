@@ -433,15 +433,9 @@ export function InvoicePDFDocument({ invoice }: { invoice: any }) {
             <View>
               <Text style={styles.companyName}>Advanced Virtual Staff</Text>
               <Text style={styles.companyTagline}>
-                Payroll and Workforce Services
+                Invoice and Workforce Services
               </Text>
             </View>
-          </View>
-          <View>
-            <Text style={styles.invoiceTitle}>Payroll Invoice</Text>
-            <Text style={styles.invoiceSubtitle}>
-              Confidential Internal Document
-            </Text>
           </View>
         </View>
 
