@@ -703,7 +703,7 @@ export const onboardingSections: DocGroup[] = [
                   {
                     label: "Loyalty Bonus",
                     value: "P10,000",
-                    desc: "Annual reward",
+                    desc: "One Time Reward",
                   },
                   {
                     label: "Quarterly Bonus",
