@@ -4,17 +4,95 @@ import Link from "next/link";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Lightbulb, Wrench, Users } from "lucide-react";
+import { ArrowUpRight, FileEdit, Receipt, Settings } from "lucide-react";
 import { MAIN_DOCS, BUSINESS_GUIDES, AI_TOOLS } from "@/components/docs/data";
+import { useStaffStore } from "@/store/staff.store";
+import { useMyExpectedEarnings } from "@/hooks/eod/useStaffEod";
+import { useMyInvoices } from "@/hooks/invoice/useStaffInvoice";
+
+function getGreeting() {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 18) return "Good afternoon";
+  return "Good evening";
+}
 
 export default function StaffDashboardPage() {
+  const { staff } = useStaffStore();
+  const { data: earnings } = useMyExpectedEarnings();
+  const { data: invoices } = useMyInvoices();
+
+  const pendingEodCount = earnings?.pendingEodCount ?? 0;
+  const pendingInvoiceCount =
+    invoices?.filter((invoice) => invoice.status === "approved").length ?? 0;
+
+  const quickActions = [
+    {
+      id: "submit-eod",
+      label: "Submit EOD Report",
+      href: "/eod?action=submit",
+      icon: FileEdit,
+      badge: pendingEodCount > 0 ? `${pendingEodCount} pending review` : undefined,
+    },
+    {
+      id: "view-invoices",
+      label: "View Invoices",
+      href: "/invoice",
+      icon: Receipt,
+      badge: pendingInvoiceCount > 0 ? `${pendingInvoiceCount} pending` : undefined,
+    },
+    {
+      id: "settings",
+      label: "Account Settings",
+      href: "/staff-settings",
+      icon: Settings,
+      badge: undefined as string | undefined,
+    },
+  ];
+
   return (
     <div className="flex flex-1 flex-col gap-6 p-4 md:p-8 pt-6">
       <div className="space-y-8">
+        <div>
+          <h2 className="text-2xl font-semibold tracking-tight">
+            {getGreeting()}
+            {staff?.firstName ? `, ${staff.firstName}` : ""}
+          </h2>
+          <p className="text-muted-foreground text-sm mt-1">
+            Here&apos;s a quick jump to what you need.
+          </p>
+        </div>
+
+        <section className="space-y-4">
+          <h3 className="text-xl font-semibold tracking-tight">Quick Actions</h3>
+          <div className="grid grid-cols-1 divide-y overflow-hidden rounded-lg border bg-card sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+            {quickActions.map((action) => {
+              const Icon = action.icon;
+              return (
+                <Link
+                  key={action.id}
+                  href={action.href}
+                  className="group flex items-center gap-3 px-5 py-4 transition-colors hover:bg-muted/50"
+                >
+                  <Icon className="h-[18px] w-[18px] shrink-0 text-muted-foreground transition-colors group-hover:text-foreground" />
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm font-medium">{action.label}</div>
+                    {action.badge && (
+                      <div className="mt-0.5 text-xs text-muted-foreground">
+                        {action.badge}
+                      </div>
+                    )}
+                  </div>
+                  <ArrowUpRight className="h-4 w-4 shrink-0 text-muted-foreground/40 transition-all group-hover:text-foreground group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+
         <section className="space-y-4">
           <h3 className="text-xl font-semibold tracking-tight">Main Documentation</h3>
           <p className="text-muted-foreground text-sm">
@@ -142,42 +220,6 @@ export default function StaffDashboardPage() {
             })}
           </div>
         </section>
-
-        <div className="mt-8">
-          <h3 className="text-xl font-semibold tracking-tight mb-4">Coming Soon</h3>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {/* Placeholder for Tips */}
-            <Card className="h-full opacity-60 border-dashed">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Tips & Best Practices
-                </CardTitle>
-                <Lightbulb className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-xl font-bold mb-1">Coming Soon</div>
-                <p className="text-xs text-muted-foreground">
-                  Helpful advice for productivity and client management.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="h-full opacity-60 border-dashed">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Client CRM
-                </CardTitle>
-                <Users className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-xl font-bold mb-1">Coming Soon</div>
-                <p className="text-xs text-muted-foreground">
-                  Manage client information and project status.
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
       </div>
     </div>
   );

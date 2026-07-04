@@ -1,12 +1,20 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { FileText, Loader2 } from "lucide-react";
+import { CheckCircle2, Clock3, FileText, Loader2, Wallet } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useMyInvoices } from "@/hooks/invoice/useStaffInvoice";
 import { createColumns } from "./columns";
 import { DataTable } from "./data-table";
 import type { Invoice, InvoiceQuery } from "@/types/invoice.types";
+
+function formatCurrency(amount: number, currency = "USD") {
+    return new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency,
+    }).format(amount);
+}
 
 export default function StaffInvoicePage() {
     const router = useRouter();
@@ -61,11 +69,23 @@ export default function StaffInvoicePage() {
 
     const invoiceList = invoices || [];
 
+    const stats = useMemo(() => {
+        const currency = invoiceList[0]?.currency ?? "USD";
+        const totalNetPay = invoiceList.reduce((sum, inv) => sum + inv.netPay, 0);
+        const paidTotal = invoiceList
+            .filter((inv) => inv.status === "paid")
+            .reduce((sum, inv) => sum + inv.netPay, 0);
+        const pendingCount = invoiceList.filter(
+            (inv) => inv.status === "approved",
+        ).length;
+        return { currency, totalNetPay, paidTotal, pendingCount };
+    }, [invoiceList]);
+
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between px-2">
-                <div className="space-y-1 mt-6 lg:mt-0">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="space-y-1">
                     <h1 className="text-2xl font-semibold tracking-tight">My Invoices</h1>
                     <p className="text-sm text-muted-foreground">
                         View your finalized and paid invoices.
@@ -81,6 +101,51 @@ export default function StaffInvoicePage() {
                         </div>
                     )}
                 </div>
+            </div>
+
+            {/* Stat Cards */}
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                <Card>
+                    <CardHeader className="pb-2">
+                        <CardTitle className="text-xs text-muted-foreground">
+                            Total Net Pay
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="flex items-center justify-between">
+                        <p className="text-lg font-semibold">
+                            {isInvoiceLoading
+                                ? "..."
+                                : formatCurrency(stats.totalNetPay, stats.currency)}
+                        </p>
+                        <Wallet className="h-4 w-4 text-muted-foreground" />
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="pb-2">
+                        <CardTitle className="text-xs text-muted-foreground">Paid</CardTitle>
+                    </CardHeader>
+                    <CardContent className="flex items-center justify-between">
+                        <p className="text-lg font-semibold">
+                            {isInvoiceLoading
+                                ? "..."
+                                : formatCurrency(stats.paidTotal, stats.currency)}
+                        </p>
+                        <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="pb-2">
+                        <CardTitle className="text-xs text-muted-foreground">
+                            Pending Payment
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="flex items-center justify-between">
+                        <p className="text-lg font-semibold">
+                            {isInvoiceLoading ? "..." : stats.pendingCount}
+                        </p>
+                        <Clock3 className="h-4 w-4 text-muted-foreground" />
+                    </CardContent>
+                </Card>
             </div>
 
             {/* Data Table */}

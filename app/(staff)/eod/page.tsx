@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { AlertCircle, CalendarClock, Clock3, Plus, Wallet } from "lucide-react";
 import type { DateRange } from "react-day-picker";
 import { SubmitEodDialog } from "@/components/staff/eod/submit-eod-modal";
@@ -13,6 +14,15 @@ import { getColumns } from "./columns";
 import { DataTable } from "./data-table";
 
 export default function StaffEodPage() {
+  return (
+    <Suspense fallback={null}>
+      <StaffEodPageInner />
+    </Suspense>
+  );
+}
+
+function StaffEodPageInner() {
+  const searchParams = useSearchParams();
   const [status, setStatus] = useState<string>("all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [submitOpen, setSubmitOpen] = useState(false);
@@ -20,6 +30,12 @@ export default function StaffEodPage() {
   const [viewOpen, setViewOpen] = useState(false);
   const [resubmitReport, setResubmitReport] = useState<EodReport | null>(null);
   const [resubmitOpen, setResubmitOpen] = useState(false);
+
+  useEffect(() => {
+    if (searchParams.get("action") === "submit") {
+      setSubmitOpen(true);
+    }
+  }, [searchParams]);
 
   const queryParams: EodQuery = {
     ...(status !== "all" && { status: status as EodStatus }),
