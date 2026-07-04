@@ -1,13 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
-import {
-  AlertCircle,
-  CalendarIcon,
-  CheckCircle2,
-  Clock,
-  Loader2,
-} from "lucide-react";
+import { AlertCircle, CheckCircle2, Clock, Loader2 } from "lucide-react";
 import { useResubmitEod, useSubmitEod } from "@/hooks/eod/useStaffEod";
 import { Button } from "@/components/ui/button";
+import { DatePicker } from "@/components/ui/date-picker";
 import {
   Dialog,
   DialogContent,
@@ -18,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import type { EodReport } from "@/types/eod.types";
 
@@ -70,6 +66,20 @@ type FormState = {
 
 function getTodayDate(): string {
   return new Date().toISOString().split("T")[0];
+}
+
+function parseDateOnly(value: string): Date | undefined {
+  if (!value) return undefined;
+  const [year, month, day] = value.split("-").map(Number);
+  if (!year || !month || !day) return undefined;
+  return new Date(year, month - 1, day);
+}
+
+function formatDateOnly(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
 function buildFormState(initialData?: EodReport): FormState {
@@ -258,148 +268,154 @@ export function SubmitEodDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="date">Date</Label>
-            <div className="relative">
-              <CalendarIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                id="date"
-                name="date"
-                type="date"
-                value={form.date}
-                onChange={handleChange}
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="date">Date</Label>
+              <DatePicker
+                value={parseDateOnly(form.date)}
+                onChange={(date) => {
+                  if (!date) return;
+                  setForm((prev) => ({ ...prev, date: formatDateOnly(date) }));
+                }}
                 disabled={isResubmit}
-                className="pl-9"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="onSite">Work Location</Label>
+              <div className="flex h-9 items-center justify-between rounded-md border border-input px-3">
+                <span className="text-sm text-muted-foreground">
+                  Worked on-site
+                </span>
+                <Switch
+                  id="onSite"
+                  checked={form.onSite}
+                  onCheckedChange={(checked) =>
+                    setForm((prev) => ({ ...prev, onSite: checked }))
+                  }
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <h4 className="text-sm font-medium">Hours Worked</h4>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <div className="space-y-2">
+                <Label htmlFor="regularHoursWorked">Regular Hours</Label>
+                <Input
+                  id="regularHoursWorked"
+                  name="regularHoursWorked"
+                  type="number"
+                  step="0.25"
+                  min="0"
+                  max="24"
+                  placeholder="8"
+                  value={form.regularHoursWorked}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="overtimeHoursWorked">Overtime Hours</Label>
+                <Input
+                  id="overtimeHoursWorked"
+                  name="overtimeHoursWorked"
+                  type="number"
+                  step="0.25"
+                  min="0"
+                  max="24"
+                  placeholder="0"
+                  value={form.overtimeHoursWorked}
+                  onChange={handleChange}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="nightDifferentialHours">Night Diff Hours</Label>
+                <Input
+                  id="nightDifferentialHours"
+                  name="nightDifferentialHours"
+                  type="number"
+                  step="0.25"
+                  min="0"
+                  max="24"
+                  placeholder="0"
+                  value={form.nightDifferentialHours}
+                  onChange={handleChange}
+                />
+              </div>
+            </div>
+
+            {/* Auto-computed total */}
+            <div className="flex items-center gap-2 rounded-md bg-muted/50 px-3 py-2">
+              <Clock className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">
+                Total Hours Worked:
+              </span>
+              <span className="text-sm font-semibold">
+                {parsed.hoursWorked !== undefined
+                  ? `${parsed.hoursWorked}h`
+                  : "—"}
+              </span>
+            </div>
+
+            {hoursBreakdownError && (
+              <p className="text-sm text-destructive">{hoursBreakdownError}</p>
+            )}
+          </div>
+
+          <div className="space-y-4">
+            <h4 className="text-sm font-medium">Report Details</h4>
+
+            <div className="space-y-2">
+              <Label htmlFor="tasksCompleted">Tasks Completed</Label>
+              <Textarea
+                id="tasksCompleted"
+                name="tasksCompleted"
+                placeholder="Describe the tasks you completed today..."
+                value={form.tasksCompleted}
+                onChange={handleChange}
+                rows={3}
                 required
               />
             </div>
-          </div>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="challenges">Challenges</Label>
+                <Textarea
+                  id="challenges"
+                  name="challenges"
+                  placeholder="Any blockers or issues..."
+                  value={form.challenges}
+                  onChange={handleChange}
+                  rows={2}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="nextDayPlan">Next Day Plan</Label>
+                <Textarea
+                  id="nextDayPlan"
+                  name="nextDayPlan"
+                  placeholder="What's next..."
+                  value={form.nextDayPlan}
+                  onChange={handleChange}
+                  rows={2}
+                />
+              </div>
+            </div>
+
             <div className="space-y-2">
-              <Label htmlFor="regularHoursWorked">Regular Hours</Label>
-              <Input
-                id="regularHoursWorked"
-                name="regularHoursWorked"
-                type="number"
-                step="0.25"
-                min="0"
-                max="24"
-                placeholder="8"
-                value={form.regularHoursWorked}
+              <Label htmlFor="notes">Additional Notes</Label>
+              <Textarea
+                id="notes"
+                name="notes"
+                placeholder="Any additional notes..."
+                value={form.notes}
                 onChange={handleChange}
-                required
+                rows={2}
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="overtimeHoursWorked">Overtime Hours</Label>
-              <Input
-                id="overtimeHoursWorked"
-                name="overtimeHoursWorked"
-                type="number"
-                step="0.25"
-                min="0"
-                max="24"
-                placeholder="0"
-                value={form.overtimeHoursWorked}
-                onChange={handleChange}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="nightDifferentialHours">Night Diff Hours</Label>
-              <Input
-                id="nightDifferentialHours"
-                name="nightDifferentialHours"
-                type="number"
-                step="0.25"
-                min="0"
-                max="24"
-                placeholder="0"
-                value={form.nightDifferentialHours}
-                onChange={handleChange}
-              />
-            </div>
-          </div>
-
-          {/* Auto-computed total */}
-          <div className="flex items-center gap-2 rounded-md bg-muted/50 px-3 py-2">
-            <Clock className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm text-muted-foreground">
-              Total Hours Worked:
-            </span>
-            <span className="text-sm font-semibold">
-              {parsed.hoursWorked !== undefined
-                ? `${parsed.hoursWorked}h`
-                : "—"}
-            </span>
-          </div>
-
-          {hoursBreakdownError && (
-            <p className="text-sm text-destructive">{hoursBreakdownError}</p>
-          )}
-
-          <div className="flex items-center gap-2">
-            <input
-              id="onSite"
-              name="onSite"
-              type="checkbox"
-              checked={form.onSite}
-              onChange={(e) =>
-                setForm((prev) => ({ ...prev, onSite: e.target.checked }))
-              }
-              className="h-4 w-4 rounded border-input"
-            />
-            <Label htmlFor="onSite">Worked On-Site</Label>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="tasksCompleted">Tasks Completed</Label>
-            <Textarea
-              id="tasksCompleted"
-              name="tasksCompleted"
-              placeholder="Describe the tasks you completed today..."
-              value={form.tasksCompleted}
-              onChange={handleChange}
-              rows={3}
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="challenges">Challenges</Label>
-            <Textarea
-              id="challenges"
-              name="challenges"
-              placeholder="Any blockers or issues you encountered..."
-              value={form.challenges}
-              onChange={handleChange}
-              rows={2}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="nextDayPlan">Next Day Plan</Label>
-            <Textarea
-              id="nextDayPlan"
-              name="nextDayPlan"
-              placeholder="What do you plan to work on next?"
-              value={form.nextDayPlan}
-              onChange={handleChange}
-              rows={2}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="notes">Additional Notes</Label>
-            <Textarea
-              id="notes"
-              name="notes"
-              placeholder="Any additional notes..."
-              value={form.notes}
-              onChange={handleChange}
-              rows={2}
-            />
           </div>
 
           <DialogFooter>
