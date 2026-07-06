@@ -28,11 +28,11 @@ import { toast } from "sonner";
 const statusConfig = {
   published: {
     label: "Published",
-    className: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
+    className: "status-success",
   },
   draft: {
     label: "Draft",
-    className: "bg-zinc-500/10 text-zinc-500 border-zinc-500/20",
+    className: "status-neutral",
   },
 };
 

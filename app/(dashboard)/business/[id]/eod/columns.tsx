@@ -36,26 +36,26 @@ import { toast } from "sonner";
 const statusConfig = {
   submitted: {
     label: "Submitted",
-    className: "bg-blue-500/10 text-blue-500 border-blue-500/20",
+    className: "status-info",
   },
   reviewed: {
     label: "Reviewed",
-    className: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
+    className: "status-success",
   },
   needs_revision: {
     label: "Needs Revision",
-    className: "bg-amber-500/10 text-amber-500 border-amber-500/20",
+    className: "status-warning",
   },
 };
 
 const approvalConfig = {
   true: {
     label: "Approved",
-    className: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
+    className: "status-success",
   },
   false: {
     label: "Pending",
-    className: "bg-zinc-500/10 text-zinc-500 border-zinc-500/20",
+    className: "status-neutral",
   },
 };
 
@@ -188,7 +188,7 @@ export function getColumns(
           return (
             <Badge
               variant="outline"
-              className="font-normal bg-violet-500/10 text-violet-600 border-violet-500/20 gap-1"
+              className="font-normal status-brand gap-1"
             >
               <Building2 className="h-3 w-3" />
               On-Site
@@ -199,7 +199,7 @@ export function getColumns(
           return (
             <Badge
               variant="outline"
-              className="font-normal bg-sky-500/10 text-sky-600 border-sky-500/20 gap-1"
+              className="font-normal status-info gap-1"
             >
               <Home className="h-3 w-3" />
               Remote
@@ -315,7 +315,7 @@ export function getColumns(
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     onClick={() => options.onApprove?.(report)}
-                    className="text-emerald-600 focus:text-emerald-600"
+                    className="text-success focus:text-success"
                   >
                     <CheckCircle2 className="mr-2 h-4 w-4" />
                     Approve

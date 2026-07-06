@@ -188,7 +188,7 @@ export default function BusinessSettingsPage() {
             {/* Main Content */}
             <main className="flex-1 min-w-0 space-y-6 max-w-3xl">
                 {/* Business Logo Section */}
-                <div className="rounded-lg border bg-card">
+                <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
                     <div className="p-6 border-b">
                         <h2 className="text-lg font-semibold">Business Logo</h2>
                         <p className="text-sm text-muted-foreground mt-1">
@@ -258,7 +258,7 @@ export default function BusinessSettingsPage() {
                 </div>
 
                 {/* Business Information Section */}
-                <div className="rounded-lg border bg-card">
+                <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
                     <div className="p-6 border-b">
                         <h2 className="text-lg font-semibold">Business Information</h2>
                         <p className="text-sm text-muted-foreground mt-1">

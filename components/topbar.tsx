@@ -62,7 +62,7 @@ export function Topbar() {
             <div className="items-center gap-2 hidden sm:flex">
               <div className="flex items-center gap-2 px-2 py-1 rounded-sm hover:bg-muted/50 transition-colors cursor-pointer">
                 <Avatar className="h-5 w-5">
-                  <AvatarFallback className="text-[10px] bg-indigo-500 text-white">
+                  <AvatarFallback className="text-[10px] bg-primary text-primary-foreground">
                     {getInitials()}
                   </AvatarFallback>
                 </Avatar>
@@ -99,7 +99,7 @@ export function Topbar() {
             >
               <Bell className="h-4 w-4" />
               {/* Notification indicator */}
-              <span className="absolute top-2 right-2.5 h-1.5 w-1.5 rounded-full bg-red-500 border border-background" />
+              <span className="absolute top-2 right-2.5 h-1.5 w-1.5 rounded-full bg-destructive border border-background" />
             </Button>
 
             <DropdownMenu>
@@ -162,7 +162,7 @@ export function Topbar() {
                 >
                   {item.name}
                   {isActive && (
-                    <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-foreground shadow-[0_0_12px_rgba(0,0,0,0.5)] dark:shadow-[0_0_12px_rgba(255,255,255,0.5)]" />
+                    <span className="absolute bottom-0 left-0 right-0 h-[2px] rounded-full bg-primary" />
                   )}
                 </Link>
               );

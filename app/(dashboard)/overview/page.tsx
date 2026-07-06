@@ -63,8 +63,8 @@ export default function OverviewPage() {
       {isAdminWithNoAccess ? (
         <div className="flex min-h-[400px] flex-col items-center justify-center rounded-xl border border-dashed bg-muted/20 p-8 text-center animate-in fade-in-50">
           <div className="mx-auto flex max-w-[480px] flex-col items-center justify-center text-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-amber-100/50 dark:bg-amber-900/20 mb-6">
-              <ShieldAlert className="h-8 w-8 text-amber-600 dark:text-amber-500" />
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-warning/10 mb-6">
+              <ShieldAlert className="h-8 w-8 text-warning" />
             </div>
             <h3 className="text-xl font-semibold text-foreground">
               No Business Access
