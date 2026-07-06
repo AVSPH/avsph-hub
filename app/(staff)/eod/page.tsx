@@ -32,6 +32,7 @@ function StaffEodPageInner() {
   const searchParams = useSearchParams();
   const [status, setStatus] = useState<string>("all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+  const [page, setPage] = useState(1);
   const [submitOpen, setSubmitOpen] = useState(false);
   const [viewReport, setViewReport] = useState<EodReport | null>(null);
   const [viewOpen, setViewOpen] = useState(false);
@@ -45,6 +46,8 @@ function StaffEodPageInner() {
   }, [searchParams]);
 
   const queryParams: EodQuery = {
+    page: String(page),
+    limit: "10",
     ...(status !== "all" && { status: status as EodStatus }),
     ...(dateRange?.from && {
       startDate: dateRange.from.toISOString().split("T")[0],
@@ -77,10 +80,12 @@ function StaffEodPageInner() {
 
   const handleStatusFilter = useCallback((value: string) => {
     setStatus(value);
+    setPage(1);
   }, []);
 
   const handleDateRangeChange = useCallback((range: DateRange | undefined) => {
     setDateRange(range);
+    setPage(1);
   }, []);
 
   const handleView = useCallback((report: EodReport) => {
@@ -219,6 +224,12 @@ function StaffEodPageInner() {
         dateRange={dateRange}
         onDateRangeChange={handleDateRangeChange}
         onRowClick={(row) => handleView(row as EodReport)}
+        page={pagedData?.pagination?.page ?? page}
+        totalPages={pagedData?.pagination?.totalPages ?? 1}
+        totalCount={totalCount}
+        hasNextPage={pagedData?.pagination?.hasNextPage ?? false}
+        hasPrevPage={pagedData?.pagination?.hasPrevPage ?? false}
+        onPageChange={setPage}
       />
 
       <SubmitEodDialog open={submitOpen} onOpenChange={setSubmitOpen} />

@@ -17,23 +17,14 @@ import {
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
-  Settings2,
+  Search,
   X,
-  FileText,
+  Inbox,
   Loader2,
 } from "lucide-react";
-import { type DateRange } from "react-day-picker";
 
 import { Button } from "@/components/ui/button";
-import { DatePickerWithRange } from "@/components/ui/date-range-picker";
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -49,48 +40,48 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import type { PaginationInfo } from "@/types/leads.types";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
-  isLoading?: boolean;
-  statusFilter?: string;
-  onStatusFilter?: (status: string) => void;
-  dateRange?: DateRange;
-  onDateRangeChange?: (range: DateRange | undefined) => void;
-  onRowClick?: (row: TData) => void;
-  page?: number;
-  totalPages?: number;
-  totalCount?: number;
-  hasNextPage?: boolean;
-  hasPrevPage?: boolean;
+  pagination?: PaginationInfo;
   onPageChange?: (page: number) => void;
+  onSearch?: (search: string) => void;
+  onStatusFilter?: (status: string) => void;
+  onRowClick?: (row: TData) => void;
+  searchValue?: string;
+  statusFilter?: string;
+  isLoading?: boolean;
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
-  isLoading = false,
-  statusFilter = "all",
-  onStatusFilter,
-  dateRange,
-  onDateRangeChange,
-  onRowClick,
-  page = 1,
-  totalPages = 1,
-  totalCount = data.length,
-  hasNextPage = false,
-  hasPrevPage = false,
+  pagination,
   onPageChange,
+  onSearch,
+  onStatusFilter,
+  onRowClick,
+  searchValue = "",
+  statusFilter = "all",
+  isLoading = false,
 }: DataTableProps<TData, TValue>) {
-  const [sorting, setSorting] = React.useState<SortingState>([
-    { id: "date", desc: true },
-  ]);
+  const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     [],
   );
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
+  const [localSearch, setLocalSearch] = React.useState(searchValue);
+
+  // Debounced search
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      onSearch?.(localSearch);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [localSearch, onSearch]);
 
   const table = useReactTable({
     data,
@@ -106,40 +97,47 @@ export function DataTable<TData, TValue>({
       columnFilters,
       columnVisibility,
     },
+    manualPagination: true,
+    pageCount: pagination?.totalPages ?? -1,
   });
 
-  const hasFilters =
-    statusFilter !== "all" || !!dateRange?.from || !!dateRange?.to;
+  const hasFilters = localSearch || statusFilter !== "all";
 
   const clearFilters = () => {
+    setLocalSearch("");
+    onSearch?.("");
     onStatusFilter?.("all");
-    onDateRangeChange?.(undefined);
   };
 
   return (
     <div className="space-y-4">
       {/* Toolbar */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-1 flex-wrap items-center gap-2">
+        <div className="flex flex-1 items-center gap-2">
+          {/* Search */}
+          <div className="relative w-full sm:w-[300px]">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search leads..."
+              value={localSearch}
+              onChange={(e) => setLocalSearch(e.target.value)}
+              className="h-9 pl-9 bg-background"
+            />
+          </div>
+
           {/* Status Filter */}
           <Select value={statusFilter} onValueChange={onStatusFilter}>
-            <SelectTrigger className="h-9 w-[160px] bg-background">
+            <SelectTrigger className="h-9 w-[140px] bg-background">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="submitted">Submitted</SelectItem>
-              <SelectItem value="reviewed">Reviewed</SelectItem>
-              <SelectItem value="needs_revision">Needs Revision</SelectItem>
+              <SelectItem value="new">New</SelectItem>
+              <SelectItem value="contacted">Contacted</SelectItem>
+              <SelectItem value="qualified">Qualified</SelectItem>
+              <SelectItem value="converted">Converted</SelectItem>
             </SelectContent>
           </Select>
-
-          {/* Date Range Filter */}
-          <DatePickerWithRange
-            value={dateRange}
-            onChange={onDateRangeChange}
-            placeholder="Filter by date range"
-          />
 
           {/* Clear Filters */}
           {hasFilters && (
@@ -148,42 +146,11 @@ export function DataTable<TData, TValue>({
               onClick={clearFilters}
               className="h-9 px-2 lg:px-3"
             >
-              Clear
+              Reset
               <X className="ml-2 h-4 w-4" />
             </Button>
           )}
         </div>
-
-        {/* Column Visibility */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="h-9 border-dashed">
-              <Settings2 className="mr-2 h-4 w-4" />
-              View
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-[180px]">
-            <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            {table
-              .getAllColumns()
-              .filter(
-                (column) =>
-                  typeof column.accessorFn !== "undefined" &&
-                  column.getCanHide(),
-              )
-              .map((column) => (
-                <DropdownMenuCheckboxItem
-                  key={column.id}
-                  className="capitalize"
-                  checked={column.getIsVisible()}
-                  onCheckedChange={(value) => column.toggleVisibility(!!value)}
-                >
-                  {column.id}
-                </DropdownMenuCheckboxItem>
-              ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
       </div>
 
       {/* Table */}
@@ -218,7 +185,7 @@ export function DataTable<TData, TValue>({
                   <div className="flex flex-col items-center justify-center gap-2">
                     <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
                     <span className="text-sm text-muted-foreground">
-                      Loading EOD reports...
+                      Loading leads...
                     </span>
                   </div>
                 </TableCell>
@@ -227,7 +194,7 @@ export function DataTable<TData, TValue>({
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
-                  className="group cursor-pointer"
+                  className={`group${onRowClick ? " cursor-pointer" : ""}`}
                   onClick={() => onRowClick?.(row.original)}
                 >
                   {row.getVisibleCells().map((cell) => (
@@ -248,16 +215,14 @@ export function DataTable<TData, TValue>({
                 >
                   <div className="flex flex-col items-center justify-center gap-2">
                     <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
-                      <FileText className="h-6 w-6 text-muted-foreground" />
+                      <Inbox className="h-6 w-6 text-muted-foreground" />
                     </div>
                     <div className="space-y-1">
-                      <p className="text-sm font-medium">
-                        No EOD reports found
-                      </p>
+                      <p className="text-sm font-medium">No leads found</p>
                       <p className="text-xs text-muted-foreground">
                         {hasFilters
-                          ? "Try adjusting your filters"
-                          : "You haven't submitted any EOD reports yet"}
+                          ? "Try adjusting your search or filters"
+                          : "Leads submitted through your site will show up here"}
                       </p>
                     </div>
                     {hasFilters && (
@@ -279,21 +244,24 @@ export function DataTable<TData, TValue>({
       </div>
 
       {/* Pagination */}
-      {totalPages > 1 && (
+      {pagination && (
         <div className="flex items-center justify-between px-2">
           <div className="flex-1 text-sm text-muted-foreground">
-            {totalCount} result{totalCount === 1 ? "" : "s"} total
+            Showing{" "}
+            {Math.min((pagination.page - 1) * pagination.limit + 1, pagination.total)}{" "}
+            to {Math.min(pagination.page * pagination.limit, pagination.total)} of{" "}
+            {pagination.total} results
           </div>
           <div className="flex items-center space-x-6 lg:space-x-8">
             <div className="flex w-[100px] items-center justify-center text-sm font-medium">
-              Page {page} of {totalPages}
+              Page {pagination.page} of {pagination.totalPages}
             </div>
             <div className="flex items-center space-x-2">
               <Button
                 variant="outline"
                 className="hidden h-8 w-8 p-0 lg:flex"
                 onClick={() => onPageChange?.(1)}
-                disabled={!hasPrevPage}
+                disabled={pagination.page <= 1}
               >
                 <span className="sr-only">Go to first page</span>
                 <ChevronsLeft className="h-4 w-4" />
@@ -301,8 +269,8 @@ export function DataTable<TData, TValue>({
               <Button
                 variant="outline"
                 className="h-8 w-8 p-0"
-                onClick={() => onPageChange?.(page - 1)}
-                disabled={!hasPrevPage}
+                onClick={() => onPageChange?.(pagination.page - 1)}
+                disabled={pagination.page <= 1}
               >
                 <span className="sr-only">Go to previous page</span>
                 <ChevronLeft className="h-4 w-4" />
@@ -310,8 +278,8 @@ export function DataTable<TData, TValue>({
               <Button
                 variant="outline"
                 className="h-8 w-8 p-0"
-                onClick={() => onPageChange?.(page + 1)}
-                disabled={!hasNextPage}
+                onClick={() => onPageChange?.(pagination.page + 1)}
+                disabled={!pagination.hasMore}
               >
                 <span className="sr-only">Go to next page</span>
                 <ChevronRight className="h-4 w-4" />
@@ -319,8 +287,8 @@ export function DataTable<TData, TValue>({
               <Button
                 variant="outline"
                 className="hidden h-8 w-8 p-0 lg:flex"
-                onClick={() => onPageChange?.(totalPages)}
-                disabled={!hasNextPage}
+                onClick={() => onPageChange?.(pagination.totalPages)}
+                disabled={!pagination.hasMore}
               >
                 <span className="sr-only">Go to last page</span>
                 <ChevronsRight className="h-4 w-4" />
