@@ -28,6 +28,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { BusinessAnalytics } from "@/components/business/business-analytics";
 
 const invoiceStatusClassMap: Record<string, string> = {
   draft: "status-neutral",
@@ -263,6 +264,9 @@ export default function BusinessOverviewPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Operations Analytics */}
+      <BusinessAnalytics businessId={businessId} />
 
       {/* Two Column Layout for deeper details */}
       <div className="grid gap-6 md:grid-cols-7">
