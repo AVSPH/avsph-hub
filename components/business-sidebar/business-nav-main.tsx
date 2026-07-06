@@ -11,6 +11,7 @@ import {
   Receipt,
   ClipboardList,
   Newspaper,
+  Inbox,
   type LucideIcon,
 } from "lucide-react";
 
@@ -53,6 +54,11 @@ export function BusinessNavMain({ businessId }: BusinessNavMainProps) {
           title: "End of Day Reports",
           href: `/business/${businessId}/eod`,
           icon: ClipboardList,
+        },
+        {
+          title: "Leads",
+          href: `/business/${businessId}/leads`,
+          icon: Inbox,
         },
       ],
     },
