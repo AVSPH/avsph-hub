@@ -39,30 +39,30 @@ interface ColumnOptions {
 const statusConfig = {
   active: {
     label: "Active",
-    className: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
+    className: "status-success",
   },
   on_leave: {
     label: "On Leave",
-    className: "bg-amber-500/10 text-amber-500 border-amber-500/20",
+    className: "status-warning",
   },
   terminated: {
     label: "Terminated",
-    className: "bg-red-500/10 text-red-500 border-red-500/20",
+    className: "status-danger",
   },
 };
 
 const employmentTypeConfig = {
   "full-time": {
     label: "Full-time",
-    className: "bg-blue-500/10 text-blue-500 border-blue-500/20",
+    className: "status-info",
   },
   "part-time": {
     label: "Part-time",
-    className: "bg-purple-500/10 text-purple-500 border-purple-500/20",
+    className: "status-brand",
   },
   contract: {
     label: "Contract",
-    className: "bg-orange-500/10 text-orange-500 border-orange-500/20",
+    className: "status-neutral",
   },
 };
 

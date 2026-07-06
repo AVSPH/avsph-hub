@@ -52,7 +52,7 @@ export default function StaffLayout({
     return (
         <div className="min-h-screen bg-background">
             <StaffTopbar />
-            <main className="container mx-auto px-4 py-6 md:px-6 md:py-8">
+            <main className="mx-auto w-full max-w-6xl px-4 py-6 md:px-6 md:py-10">
                 {children}
             </main>
         </div>

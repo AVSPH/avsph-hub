@@ -28,19 +28,20 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { BusinessAnalytics } from "@/components/business/business-analytics";
 
 const invoiceStatusClassMap: Record<string, string> = {
-  draft: "bg-slate-500/10 text-slate-600 border-slate-500/20",
-  calculated: "bg-blue-500/10 text-blue-600 border-blue-500/20",
-  approved: "bg-emerald-500/10 text-emerald-600 border-emerald-500/30",
-  paid: "bg-cyan-500/10 text-cyan-600 border-cyan-500/30",
+  draft: "status-neutral",
+  calculated: "status-info",
+  approved: "status-success",
+  paid: "status-brand",
 };
 
 const eodStatusClassMap: Record<string, string> = {
-  submitted: "bg-amber-500/10 text-amber-600 border-amber-500/30",
-  reviewed: "bg-blue-500/10 text-blue-600 border-blue-500/30",
-  needs_revision: "bg-rose-500/10 text-rose-600 border-rose-500/30",
-  approved: "bg-emerald-500/10 text-emerald-600 border-emerald-500/30",
+  submitted: "status-info",
+  reviewed: "status-success",
+  needs_revision: "status-warning",
+  approved: "status-success",
 };
 
 function formatDate(dateString: string): string {
@@ -191,74 +192,81 @@ export default function BusinessOverviewPage() {
 
       {/* Quick Metrics */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Staff</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {isOverviewStatsLoading ? "--" : (overviewStats?.totalStaff ?? 0)}
+        <Card className="gap-0 py-0 shadow-sm">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              <Users className="h-3.5 w-3.5" />
+              <span className="text-xs font-medium uppercase tracking-wide">
+                Total Staff
+              </span>
             </div>
-            <p className="text-xs text-muted-foreground mt-1">Active records</p>
+            <p className="mt-2 text-2xl font-bold tabular-nums">
+              {isOverviewStatsLoading ? "…" : (overviewStats?.totalStaff ?? 0)}
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">Active records</p>
           </CardContent>
         </Card>
 
-        <Card className="shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Open Positions
-            </CardTitle>
-            <Briefcase className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {isOverviewStatsLoading
-                ? "--"
-                : (overviewStats?.openPositions ?? 0)}
+        <Card className="gap-0 py-0 shadow-sm">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              <Briefcase className="h-3.5 w-3.5" />
+              <span className="text-xs font-medium uppercase tracking-wide">
+                Open Positions
+              </span>
             </div>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="mt-2 text-2xl font-bold tabular-nums">
+              {isOverviewStatsLoading
+                ? "…"
+                : (overviewStats?.openPositions ?? 0)}
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
               Currently recruiting
             </p>
           </CardContent>
         </Card>
 
-        <Card className="shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Recent EODs</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {isOverviewStatsLoading
-                ? "--"
-                : (overviewStats?.recentEods7d ?? 0)}
+        <Card className="gap-0 py-0 shadow-sm">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              <FileText className="h-3.5 w-3.5" />
+              <span className="text-xs font-medium uppercase tracking-wide">
+                Recent EODs
+              </span>
             </div>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="mt-2 text-2xl font-bold tabular-nums">
+              {isOverviewStatsLoading
+                ? "…"
+                : (overviewStats?.recentEods7d ?? 0)}
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
               Submitted in last 7 days
             </p>
           </CardContent>
         </Card>
 
-        <Card className="shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Pending Approvals
-            </CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-amber-600 dark:text-amber-500">
-              {isOverviewStatsLoading
-                ? "--"
-                : (overviewStats?.pendingEodApprovals ?? 0)}
+        <Card className="gap-0 py-0 shadow-sm">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              <Activity className="h-3.5 w-3.5 text-warning" />
+              <span className="text-xs font-medium uppercase tracking-wide">
+                Pending Approvals
+              </span>
             </div>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="mt-2 text-2xl font-bold tabular-nums text-warning">
+              {isOverviewStatsLoading
+                ? "…"
+                : (overviewStats?.pendingEodApprovals ?? 0)}
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
               Waiting admin review
             </p>
           </CardContent>
         </Card>
       </div>
+
+      {/* Operations Analytics */}
+      <BusinessAnalytics businessId={businessId} />
 
       {/* Two Column Layout for deeper details */}
       <div className="grid gap-6 md:grid-cols-7">

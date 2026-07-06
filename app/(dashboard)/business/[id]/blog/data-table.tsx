@@ -88,11 +88,11 @@ interface DataTableProps<TData, TValue> {
 const statusConfig = {
   published: {
     label: "Published",
-    className: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
+    className: "status-success",
   },
   draft: {
     label: "Draft",
-    className: "bg-zinc-500/10 text-zinc-500 border-zinc-500/20",
+    className: "status-neutral",
   },
 };
 
@@ -355,7 +355,7 @@ export function BlogDataTable<TData, TValue>({
 
       {/* Content */}
       {isLoading ? (
-        <div className="flex h-[400px] items-center justify-center rounded-lg border bg-card">
+        <div className="flex h-[400px] items-center justify-center rounded-xl border bg-card shadow-sm">
           <div className="flex flex-col items-center justify-center gap-2">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             <span className="text-sm text-muted-foreground">
@@ -364,7 +364,7 @@ export function BlogDataTable<TData, TValue>({
           </div>
         </div>
       ) : data.length === 0 ? (
-        <div className="flex h-[400px] items-center justify-center rounded-lg border bg-card">
+        <div className="flex h-[400px] items-center justify-center rounded-xl border bg-card shadow-sm">
           <div className="flex flex-col items-center justify-center gap-2">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
               <FileText className="h-6 w-6 text-muted-foreground" />
@@ -398,7 +398,7 @@ export function BlogDataTable<TData, TValue>({
         </div>
       ) : (
         /* Table View */
-        <div className="rounded-lg border bg-card">
+        <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
           <Table>
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (

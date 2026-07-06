@@ -327,7 +327,7 @@ export default function CompensationProfilesPage() {
                               {isPhp ? (
                                 <span className="text-muted-foreground text-sm">—</span>
                               ) : (
-                                <span className="text-sm font-medium text-emerald-600 dark:text-emerald-500">
+                                <span className="text-sm font-medium text-success">
                                   ₱{phpValue.toLocaleString(undefined, { maximumFractionDigits: 2 })}
                                 </span>
                               )}

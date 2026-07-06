@@ -91,7 +91,7 @@ function ApplicantCard({
         {applicant.isStaffConverted && (
           <Badge
             variant="outline"
-            className="shrink-0 text-[10px] bg-green-500/10 text-green-600 border-green-200"
+            className="shrink-0 text-[10px] status-success"
           >
             <UserCheck className="mr-1 h-3 w-3" />
             Hired
@@ -437,7 +437,7 @@ export default function JobPostDetailPage() {
                 <div className="space-y-4 mt-6  px-5">
                   {/* Status */}
                   {selectedApplicant.isStaffConverted && (
-                    <div className="rounded-lg bg-green-500/10 border border-green-200 p-3 text-sm text-green-700">
+                    <div className="rounded-lg bg-success/10 border border-success/25 p-3 text-sm text-success">
                       <UserCheck className="inline mr-2 h-4 w-4" />
                       Converted to staff member
                     </div>

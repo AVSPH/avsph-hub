@@ -44,7 +44,7 @@ export function BusinessCard({ business }: BusinessCardProps) {
 
   return (
     <Card
-      className="group relative transition-all hover:shadow-md hover:border-foreground/20 cursor-pointer"
+      className="card-interactive group relative cursor-pointer"
       onClick={handleCardClick}
     >
       <CardHeader className="pb-3">

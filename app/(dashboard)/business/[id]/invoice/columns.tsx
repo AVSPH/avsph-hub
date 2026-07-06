@@ -36,19 +36,19 @@ interface ColumnOptions {
 const statusConfig: Record<string, { label: string; className: string }> = {
   draft: {
     label: "Draft",
-    className: "bg-slate-500/10 text-slate-500 border-slate-500/20",
+    className: "status-neutral",
   },
   calculated: {
     label: "Calculated",
-    className: "bg-blue-500/10 text-blue-500 border-blue-500/20",
+    className: "status-info",
   },
   approved: {
     label: "Approved",
-    className: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
+    className: "status-success",
   },
   paid: {
     label: "Paid",
-    className: "bg-purple-500/10 text-purple-500 border-purple-500/20",
+    className: "status-brand",
   },
 };
 

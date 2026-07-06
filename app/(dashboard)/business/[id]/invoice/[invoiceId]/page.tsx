@@ -60,22 +60,22 @@ const statusConfig: Record<
 > = {
   draft: {
     label: "Draft",
-    className: "bg-slate-500/10 text-slate-500 border-slate-500/20",
+    className: "status-neutral",
     icon: <FileText className="h-3.5 w-3.5" />,
   },
   calculated: {
     label: "Calculated",
-    className: "bg-blue-500/10 text-blue-500 border-blue-500/20",
+    className: "status-info",
     icon: <ClipboardList className="h-3.5 w-3.5" />,
   },
   approved: {
     label: "Approved",
-    className: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
+    className: "status-success",
     icon: <BadgeCheck className="h-3.5 w-3.5" />,
   },
   paid: {
     label: "Paid",
-    className: "bg-purple-500/10 text-purple-500 border-purple-500/20",
+    className: "status-brand",
     icon: <DollarSign className="h-3.5 w-3.5" />,
   },
 };
@@ -578,7 +578,7 @@ export default function InvoiceDetailPage() {
               {/* Additions */}
               {invoice.additions.length > 0 && (
                 <div className="mt-8 mb-4">
-                  <h4 className="text-xs font-bold uppercase tracking-widest text-emerald-600/80 mb-3">
+                  <h4 className="text-xs font-bold uppercase tracking-widest text-success/80 mb-3">
                     Additions
                   </h4>
                   <div className="space-y-1">
@@ -595,14 +595,14 @@ export default function InvoiceDetailPage() {
                             </span>
                           )}
                         </span>
-                        <span className="text-emerald-600 font-medium">
+                        <span className="text-success font-medium">
                           +{fmt(a.amount, cur)}
                         </span>
                       </div>
                     ))}
                     <div className="flex justify-between py-2 mt-2 text-sm font-medium border-t border-border/40">
                       <span>Total Additions</span>
-                      <span className="text-emerald-600">
+                      <span className="text-success">
                         +{fmt(totalAdditions, cur)}
                       </span>
                     </div>
@@ -726,15 +726,15 @@ export default function InvoiceDetailPage() {
 
           {/* PHP Conversion Breakdown */}
           {isNonPhp && php && (
-            <div className="px-6 py-5 sm:px-8 bg-amber-50/60 dark:bg-amber-950/20 border-t border-amber-200/50 dark:border-amber-800/30">
-              <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400 mb-4">
+            <div className="px-6 py-5 sm:px-8 bg-warning/[0.07] border-t border-warning/20">
+              <div className="flex items-center gap-2 text-warning mb-4">
                 <ArrowRightLeft className="h-4 w-4" />
                 <h3 className="text-xs font-bold uppercase tracking-widest">
                   PHP Conversion Breakdown
                 </h3>
                 <Badge
                   variant="outline"
-                  className="ml-auto text-xs border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-400"
+                  className="ml-auto text-xs status-warning"
                 >
                   1 {cur} = {php.exchangeRate} PHP
                 </Badge>
@@ -873,8 +873,8 @@ export default function InvoiceDetailPage() {
                           variant="outline"
                           className={
                             eod.isApproved
-                              ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/30 font-medium"
-                              : "bg-amber-500/10 text-amber-600 border-amber-500/30 font-medium"
+                              ? "status-success font-medium"
+                              : "status-warning font-medium"
                           }
                         >
                           {eod.isApproved ? "Approved" : eod.status}

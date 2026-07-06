@@ -48,9 +48,9 @@ const defaultStages: JobPostStage[] = [
 ];
 
 const stageTypeColors: Record<string, string> = {
-  active: "bg-blue-500/10 text-blue-600 border-blue-200",
-  hired: "bg-green-500/10 text-green-600 border-green-200",
-  rejected: "bg-red-500/10 text-red-600 border-red-200",
+  active: "status-info",
+  hired: "status-success",
+  rejected: "status-danger",
 };
 
 const initialForm: {
@@ -384,10 +384,10 @@ export function CreateJobPostDialog({
                       <div
                         className={`w-2 h-2 rounded-full shrink-0 ${
                           stage.type === "active"
-                            ? "bg-blue-500"
+                            ? "bg-info"
                             : stage.type === "hired"
-                              ? "bg-green-500"
-                              : "bg-red-500"
+                              ? "bg-success"
+                              : "bg-destructive"
                         }`}
                       />
                       <Button

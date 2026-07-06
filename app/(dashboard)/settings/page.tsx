@@ -185,7 +185,7 @@ function TeamMembersPage() {
   return (
     <div className="space-y-8 max-w-4xl">
       {/* Add Team Member Section */}
-      <div className="rounded-lg border bg-card">
+      <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
         <div className="p-6 border-b">
           <h2 className="text-lg font-semibold">Add Team Member</h2>
           <p className="text-sm text-muted-foreground mt-1">
@@ -313,7 +313,7 @@ function TeamMembersPage() {
       </div>
 
       {/* Team Members Table Section */}
-      <div className="rounded-lg border bg-card">
+      <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
         <div className="p-6 border-b flex items-center justify-between">
           <div>
             <h2 className="text-lg font-semibold">Team Members</h2>

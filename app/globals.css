@@ -49,14 +49,20 @@
 
   --radius: 0.5rem;
 
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  /* Softer, more layered elevation — reads as "premium/quiet" rather than
+     the default heavy drop shadow. Tinted toward the brand navy so cards
+     feel seated on the surface instead of floating in pure black. */
+  --shadow-sm: 0 1px 2px 0 rgb(11 79 115 / 0.06);
+  --shadow-md: 0 2px 4px -1px rgb(11 79 115 / 0.07), 0 4px 12px -2px rgb(11 79 115 / 0.06);
+  --shadow-lg: 0 4px 8px -2px rgb(11 79 115 / 0.08), 0 12px 24px -4px rgb(11 79 115 / 0.08);
+  --shadow-xl: 0 8px 16px -4px rgb(11 79 115 / 0.10), 0 20px 40px -8px rgb(11 79 115 / 0.10);
 
-  --font-sans: Montserrat, sans-serif;
-  --font-serif: Georgia, serif;
-  --font-mono: Fira Code, monospace;
+  /* Geist is loaded in app/layout.tsx as --font-geist-sans / --font-geist-mono.
+     These stacks are re-declared on <body> (see @layer base) so they resolve
+     against those loaded faces; the values here are the safe fallbacks. */
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-serif: Georgia, "Times New Roman", serif;
+  --font-mono: ui-monospace, "Fira Code", SFMono-Regular, Menlo, monospace;
 }
 
 .dark {
@@ -158,8 +164,61 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    /* Re-declare the font tokens here so they resolve against the Geist
+       variables that next/font attaches to <body>. Fixes the app rendering
+       in a generic system font instead of the intended Geist. */
+    --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system,
+      "Segoe UI", Roboto, sans-serif;
+    --font-mono: var(--font-geist-mono), ui-monospace, "Fira Code", SFMono-Regular,
+      Menlo, monospace;
+    @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings: "cv11", "ss01";
+    text-rendering: optimizeLegibility;
   }
+
+  /* Text selection picks up the brand instead of the browser default. */
+  ::selection {
+    background-color: color-mix(in srgb, var(--primary) 22%, transparent);
+  }
+
+  /* Numeric UI (pay, hours, counts, dates) should never wobble in width. */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* Status pills — single source of truth across EOD + invoice tables.
+   Colors are theme tokens, so light/dark and brand changes propagate
+   everywhere instead of being hard-coded per column file.
+   Deliberately UNLAYERED: these ride on <Badge variant="outline"> whose
+   `text-foreground` lives in Tailwind's utilities layer. Unlayered rules
+   outrank any @layer, so the status color always wins. */
+.status-badge {
+  @apply inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium transition-colors;
+}
+.status-neutral {
+  @apply border-border bg-foreground/[0.04] text-muted-foreground;
+}
+.status-info {
+  @apply border-info/25 bg-info/10 text-info;
+}
+.status-success {
+  @apply border-success/25 bg-success/10 text-success;
+}
+.status-warning {
+  @apply border-warning/25 bg-warning/10 text-warning;
+}
+.status-brand {
+  @apply border-primary/25 bg-primary/10 text-primary;
+}
+.status-danger {
+  @apply border-destructive/25 bg-destructive/10 text-destructive;
+}
+
+/* Reusable "quiet lift" for clickable cards — replaces jumpy scale hovers.
+   Uses translate + shadow + border so text stays crisp (scale blurs it). */
+.card-interactive {
+  @apply transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md hover:border-primary/40;
 }
 
 

@@ -15,26 +15,26 @@ import type { EodReport } from "@/types/eod.types";
 const statusConfig = {
   submitted: {
     label: "Submitted",
-    className: "bg-blue-500/10 text-blue-500 border-blue-500/20",
+    className: "status-info",
   },
   reviewed: {
     label: "Reviewed",
-    className: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
+    className: "status-success",
   },
   needs_revision: {
     label: "Needs Revision",
-    className: "bg-amber-500/10 text-amber-500 border-amber-500/20",
+    className: "status-warning",
   },
 };
 
 const approvalConfig = {
   true: {
     label: "Approved",
-    className: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
+    className: "status-success",
   },
   false: {
     label: "Pending",
-    className: "bg-zinc-500/10 text-zinc-500 border-zinc-500/20",
+    className: "status-neutral",
   },
 };
 
@@ -179,7 +179,7 @@ export function getColumns(
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 text-amber-500 hover:text-amber-600"
+                  className="h-8 w-8 text-warning hover:bg-warning/10 hover:text-warning"
                   onClick={(e) => {
                     e.stopPropagation();
                     options.onResubmit?.(report);

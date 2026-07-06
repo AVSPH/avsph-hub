@@ -31,34 +31,34 @@ interface ColumnOptions {
 const sourceConfig = {
   contact_form: {
     label: "Contact Form",
-    className: "bg-blue-500/10 text-blue-500 border-blue-500/20",
+    className: "status-info",
   },
   newsletter: {
     label: "Newsletter",
-    className: "bg-purple-500/10 text-purple-500 border-purple-500/20",
+    className: "status-brand",
   },
   other: {
     label: "Other",
-    className: "bg-slate-500/10 text-slate-500 border-slate-500/20",
+    className: "status-neutral",
   },
 };
 
 const statusConfig = {
   new: {
     label: "New",
-    className: "bg-blue-500/10 text-blue-500 border-blue-500/20",
+    className: "status-info",
   },
   contacted: {
     label: "Contacted",
-    className: "bg-amber-500/10 text-amber-500 border-amber-500/20",
+    className: "status-warning",
   },
   qualified: {
     label: "Qualified",
-    className: "bg-purple-500/10 text-purple-500 border-purple-500/20",
+    className: "status-brand",
   },
   converted: {
     label: "Converted",
-    className: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
+    className: "status-success",
   },
 };
 

@@ -2,8 +2,8 @@
 
 import { useState, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, Clock3, FileText, Loader2, Wallet } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CheckCircle2, Clock3, FileText, Wallet } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { useMyInvoices } from "@/hooks/invoice/useStaffInvoice";
 import { createColumns } from "./columns";
 import { DataTable } from "./data-table";
@@ -105,45 +105,56 @@ export default function StaffInvoicePage() {
 
             {/* Stat Cards */}
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                <Card>
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-xs text-muted-foreground">
-                            Total Net Pay
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="flex items-center justify-between">
-                        <p className="text-lg font-semibold">
+                <Card className="gap-0 py-0">
+                    <CardContent className="p-4">
+                        <div className="flex items-center gap-1.5 text-muted-foreground">
+                            <Wallet className="h-3.5 w-3.5" />
+                            <span className="text-xs font-medium uppercase tracking-wide">
+                                Total Net Pay
+                            </span>
+                        </div>
+                        <p className="mt-2 text-2xl font-bold tabular-nums">
                             {isInvoiceLoading
-                                ? "..."
+                                ? "…"
                                 : formatCurrency(stats.totalNetPay, stats.currency)}
                         </p>
-                        <Wallet className="h-4 w-4 text-muted-foreground" />
+                        <p className="mt-1 text-xs text-muted-foreground">
+                            Across all invoices
+                        </p>
                     </CardContent>
                 </Card>
-                <Card>
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-xs text-muted-foreground">Paid</CardTitle>
-                    </CardHeader>
-                    <CardContent className="flex items-center justify-between">
-                        <p className="text-lg font-semibold">
+                <Card className="gap-0 py-0">
+                    <CardContent className="p-4">
+                        <div className="flex items-center gap-1.5 text-muted-foreground">
+                            <CheckCircle2 className="h-3.5 w-3.5 text-success" />
+                            <span className="text-xs font-medium uppercase tracking-wide">
+                                Paid
+                            </span>
+                        </div>
+                        <p className="mt-2 text-2xl font-bold tabular-nums text-success">
                             {isInvoiceLoading
-                                ? "..."
+                                ? "…"
                                 : formatCurrency(stats.paidTotal, stats.currency)}
                         </p>
-                        <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
+                        <p className="mt-1 text-xs text-muted-foreground">
+                            Settled &amp; received
+                        </p>
                     </CardContent>
                 </Card>
-                <Card>
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-xs text-muted-foreground">
-                            Pending Payment
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="flex items-center justify-between">
-                        <p className="text-lg font-semibold">
-                            {isInvoiceLoading ? "..." : stats.pendingCount}
+                <Card className="gap-0 py-0">
+                    <CardContent className="p-4">
+                        <div className="flex items-center gap-1.5 text-muted-foreground">
+                            <Clock3 className="h-3.5 w-3.5 text-warning" />
+                            <span className="text-xs font-medium uppercase tracking-wide">
+                                Pending Payment
+                            </span>
+                        </div>
+                        <p className="mt-2 text-2xl font-bold tabular-nums text-warning">
+                            {isInvoiceLoading ? "…" : stats.pendingCount}
                         </p>
-                        <Clock3 className="h-4 w-4 text-muted-foreground" />
+                        <p className="mt-1 text-xs text-muted-foreground">
+                            Awaiting payout
+                        </p>
                     </CardContent>
                 </Card>
             </div>
