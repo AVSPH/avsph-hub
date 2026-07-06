@@ -142,73 +142,73 @@ function StaffEodPageInner() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardContent className="p-3">
+        <Card className="gap-0 py-0">
+          <CardContent className="p-4">
             <div className="flex items-center gap-1.5 text-muted-foreground">
               <Wallet className="h-3.5 w-3.5" />
               <span className="text-xs font-medium uppercase tracking-wide">
                 Estimated Pay
               </span>
             </div>
-            <p className="mt-1.5 text-2xl font-bold tabular-nums">
+            <p className="mt-2 text-2xl font-bold tabular-nums">
               {isEarningsLoading
-                ? "..."
+                ? "…"
                 : (earnings?.estimatedPay ?? 0).toLocaleString()}
             </p>
-            <p className="mt-0.5 text-xs text-muted-foreground">
+            <p className="mt-1 text-xs text-muted-foreground">
               {payPeriodLabel ?? "Current pay period"}
             </p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-3">
+        <Card className="gap-0 py-0">
+          <CardContent className="p-4">
             <div className="flex items-center gap-1.5 text-muted-foreground">
-              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+              <CheckCircle2 className="h-3.5 w-3.5 text-success" />
               <span className="text-xs font-medium uppercase tracking-wide">
                 Approved
               </span>
             </div>
-            <p className="mt-1.5 text-2xl font-bold tabular-nums text-emerald-500">
-              {isEarningsLoading ? "..." : (earnings?.approvedEodCount ?? 0)}
+            <p className="mt-2 text-2xl font-bold tabular-nums text-success">
+              {isEarningsLoading ? "…" : (earnings?.approvedEodCount ?? 0)}
             </p>
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              Reviewed & approved
+            <p className="mt-1 text-xs text-muted-foreground">
+              Reviewed &amp; approved
             </p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-3">
+        <Card className="gap-0 py-0">
+          <CardContent className="p-4">
             <div className="flex items-center gap-1.5 text-muted-foreground">
-              <AlertCircle className="h-3.5 w-3.5 text-amber-500" />
+              <AlertCircle className="h-3.5 w-3.5 text-warning" />
               <span className="text-xs font-medium uppercase tracking-wide">
                 Pending
               </span>
             </div>
-            <p className="mt-1.5 text-2xl font-bold tabular-nums text-amber-500">
-              {isEarningsLoading ? "..." : (earnings?.pendingEodCount ?? 0)}
+            <p className="mt-2 text-2xl font-bold tabular-nums text-warning">
+              {isEarningsLoading ? "…" : (earnings?.pendingEodCount ?? 0)}
             </p>
-            <p className="mt-0.5 text-xs text-muted-foreground">
+            <p className="mt-1 text-xs text-muted-foreground">
               Awaiting review
             </p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-3">
+        <Card className="gap-0 py-0">
+          <CardContent className="p-4">
             <div className="flex items-center gap-1.5 text-muted-foreground">
               <CalendarClock className="h-3.5 w-3.5" />
               <span className="text-xs font-medium uppercase tracking-wide">
                 Next Payout
               </span>
             </div>
-            <p className="mt-1.5 text-2xl font-bold tabular-nums">
+            <p className="mt-2 text-2xl font-bold tabular-nums">
               {earnings?.nextPayoutDate
                 ? format(new Date(earnings.nextPayoutDate), "MMM d")
-                : "-"}
+                : "—"}
             </p>
-            <p className="mt-0.5 text-xs text-muted-foreground">
+            <p className="mt-1 text-xs text-muted-foreground">
               {payoutCaption ?? "—"}
             </p>
           </CardContent>
