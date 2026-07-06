@@ -70,7 +70,7 @@ export function LeadDetailSheet({ lead, open, onOpenChange }: LeadDetailSheetPro
       <SheetContent className="sm:max-w-md">
         <SheetHeader>
           <SheetTitle>
-            {lead.firstName} {lead.lastName}
+            {lead.lastName ? `${lead.firstName} ${lead.lastName}` : lead.firstName}
           </SheetTitle>
           <SheetDescription>Lead details from {sourceLabels[lead.source]}</SheetDescription>
         </SheetHeader>

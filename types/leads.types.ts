@@ -3,7 +3,7 @@ export interface Lead {
   _id: string;
   businessId: string;
   firstName: string;
-  lastName: string;
+  lastName?: string;
   email: string;
   phone?: string;
   company?: string;

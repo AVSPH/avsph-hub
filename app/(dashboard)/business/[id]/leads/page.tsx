@@ -174,7 +174,10 @@ export default function LeadsPage() {
             <AlertDialogTitle>Delete Lead</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to delete{" "}
-              {deleteLead && `${deleteLead.firstName} ${deleteLead.lastName}`}?
+              {deleteLead &&
+                (deleteLead.lastName
+                  ? `${deleteLead.firstName} ${deleteLead.lastName}`
+                  : deleteLead.firstName)}?
               This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>

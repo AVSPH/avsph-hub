@@ -84,13 +84,13 @@ export const createColumns = ({
       return (
         <div className="flex flex-col">
           <span className="font-medium text-sm">
-            {lead.firstName} {lead.lastName}
+            {lead.lastName ? `${lead.firstName} ${lead.lastName}` : lead.firstName}
           </span>
           <span className="text-xs text-muted-foreground">{lead.email}</span>
         </div>
       );
     },
-    accessorFn: (row) => `${row.firstName} ${row.lastName}`,
+    accessorFn: (row) => (row.lastName ? `${row.firstName} ${row.lastName}` : row.firstName),
   },
   {
     accessorKey: "company",
