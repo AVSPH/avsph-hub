@@ -24,6 +24,7 @@ import type {
 } from "@/types/eod.types";
 import type { CompensationProfile } from "@/types/compensation-profile.types";
 import { Button } from "@/components/ui/button";
+import { RefreshButton } from "@/components/ui/refresh-button";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -129,10 +130,13 @@ export default function EodReportsPage() {
 
   const { data: business, isLoading: isBusinessLoading } =
     useBusinessById(businessId);
-  const { data, isLoading, isError } = useEodSummaryByBusiness(
-    businessId,
-    query,
-  );
+  const {
+    data,
+    isLoading,
+    isError,
+    refetch: refetchSummary,
+    isFetching: isFetchingSummary,
+  } = useEodSummaryByBusiness(businessId, query);
 
   // Staff records (for salary fallback + compensation profile mapping) and
   // active compensation profiles, used to attach a pay rate to each row.
@@ -294,6 +298,11 @@ export default function EodReportsPage() {
               {formatDate(periodStart)} – {formatDate(periodEnd)}
             </Badge>
           )}
+          <RefreshButton
+            onRefresh={() => refetchSummary()}
+            isRefreshing={isFetchingSummary}
+            className="h-8 w-8"
+          />
           <Button
             onClick={exportToExcel}
             disabled={isExporting || !rows.length}
