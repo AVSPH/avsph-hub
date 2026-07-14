@@ -12,6 +12,7 @@ import {
   ClipboardList,
   Newspaper,
   Inbox,
+  Building2,
   type LucideIcon,
 } from "lucide-react";
 
@@ -69,6 +70,11 @@ export function BusinessNavMain({ businessId }: BusinessNavMainProps) {
           title: "Staff Members",
           href: `/business/${businessId}/staff`,
           icon: Users,
+        },
+        {
+          title: "Clients",
+          href: `/business/${businessId}/clients`,
+          icon: Building2,
         },
         {
           title: "Recruitment",

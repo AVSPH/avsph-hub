@@ -3,7 +3,6 @@
 import { useMemo } from "react";
 import {
   Building2,
-  CalendarCheck,
   Clock,
   LineChart,
   TrendingUp,
@@ -17,7 +16,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
-  useBusinessAttendanceStats,
   useBusinessPayrollTrend,
   useBusinessRecruitmentStats,
   useBusinessWorkforceStats,
@@ -240,126 +238,6 @@ function TimeBars({
   );
 }
 
-/* ── 1. Attendance ────────────────────────────────────────────────────────── */
-
-export function AttendanceCard({ businessId }: { businessId: string }) {
-  const { data, isLoading } = useBusinessAttendanceStats(businessId, 30);
-
-  const days = useMemo(() => buildAttendanceDays(data), [data]);
-
-  return (
-    <Card className="flex h-full flex-col shadow-sm">
-      <CardHeader>
-        <div className="flex items-start justify-between gap-4">
-          <div className="space-y-1.5">
-            <CardTitle className="flex items-center gap-2">
-              <CalendarCheck className="h-4 w-4" />
-              Attendance
-            </CardTitle>
-            <CardDescription>Clock-ins over the last 30 days.</CardDescription>
-          </div>
-          {!isLoading && data && (
-            <div className="text-right">
-              <p className="text-2xl font-bold tabular-nums leading-none">
-                {data.totalRecords}
-              </p>
-              <p className="mt-1 text-xs text-muted-foreground">records</p>
-            </div>
-          )}
-        </div>
-      </CardHeader>
-      <CardContent className="flex flex-1 flex-col">
-        {isLoading ? (
-          <BlockSkeleton />
-        ) : !data || data.totalRecords === 0 ? (
-          <EmptyHint>No attendance recorded in this window.</EmptyHint>
-        ) : (
-          <div className="flex flex-1 flex-col gap-5">
-            <div className="flex items-end justify-between gap-4">
-              <div>
-                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  Approved hours
-                </p>
-                <p className="mt-1 text-3xl font-bold tabular-nums text-success">
-                  {Math.round(data.approvedHours).toLocaleString()}
-                </p>
-                <p className="mt-0.5 text-xs text-muted-foreground">
-                  {data.avgHoursPerDay.toFixed(1)} hrs/day avg
-                </p>
-              </div>
-              <div className="text-right">
-                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  Pending
-                </p>
-                <p className="mt-1 text-lg font-semibold tabular-nums text-warning">
-                  {data.statusCounts.pending}
-                </p>
-                <p className="mt-0.5 text-xs text-muted-foreground">
-                  awaiting review
-                </p>
-              </div>
-            </div>
-
-            <SegmentedBar
-              segments={[
-                {
-                  key: "approved",
-                  label: "Approved",
-                  count: data.statusCounts.approved,
-                  color: STATUS_COLOR.success,
-                },
-                {
-                  key: "pending",
-                  label: "Pending",
-                  count: data.statusCounts.pending,
-                  color: STATUS_COLOR.warning,
-                },
-                {
-                  key: "rejected",
-                  label: "Rejected",
-                  count: data.statusCounts.rejected,
-                  color: STATUS_COLOR.muted,
-                },
-              ]}
-            />
-
-            <div className="flex flex-1 flex-col gap-2 border-t border-border/60 pt-4">
-              <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                <Clock className="h-3 w-3" />
-                Daily clock-ins (last 14 days)
-              </p>
-              <TimeBars bars={days} fill />
-            </div>
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
-
-function buildAttendanceDays(data?: AttendanceStats) {
-  const byDate = new Map<string, { count: number; hours: number }>();
-  for (const d of data?.daily ?? []) {
-    byDate.set(d.date, { count: d.count, hours: d.hours });
-  }
-  const out: { key: string; label: string; value: number; tip: string }[] = [];
-  for (let i = 13; i >= 0; i--) {
-    const d = new Date();
-    d.setHours(0, 0, 0, 0);
-    d.setDate(d.getDate() - i);
-    const key = d.toISOString().split("T")[0];
-    const hit = byDate.get(key);
-    const count = hit?.count ?? 0;
-    out.push({
-      key,
-      label: String(d.getDate()),
-      value: count,
-      tip: `${d.toLocaleDateString("en-US", { month: "short", day: "numeric" })} — ${count} clock-in${count === 1 ? "" : "s"}`,
-    });
-  }
-  return out;
-}
-
 /* ── 2. Recruitment ───────────────────────────────────────────────────────── */
 
 export function RecruitmentCard({ businessId }: { businessId: string }) {
@@ -566,19 +444,19 @@ export function WorkforceCard({ businessId }: { businessId: string }) {
             <div className="space-y-5">
               <div className="space-y-2.5">
                 <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                  By department
+                  By client
                 </p>
-                {data.byDepartment.length > 0 ? (
+                {data.byClient.length > 0 ? (
                   <RankedBars
-                    rows={data.byDepartment.slice(0, 5).map((d) => ({
-                      key: d.department,
-                      label: d.department,
-                      value: d.count,
+                    rows={data.byClient.slice(0, 5).map((c) => ({
+                      key: c.clientId ?? "unassigned",
+                      label: c.client,
+                      value: c.count,
                     }))}
                   />
                 ) : (
                   <p className="text-sm text-muted-foreground">
-                    No departments assigned.
+                    No clients assigned.
                   </p>
                 )}
               </div>
