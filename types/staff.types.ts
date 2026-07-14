@@ -16,6 +16,7 @@ export interface Staff {
   salary?: number;
   salaryType?: "hourly" | "daily" | "monthly" | "annual";
   compensationProfileId?: string;
+  clientId?: string;
   employmentType: "full-time" | "part-time" | "contract";
   businessId: string;
   status: "active" | "on_leave" | "terminated";
@@ -91,6 +92,8 @@ export interface UpdateStaffRequest {
   salary?: number;
   salaryType?: "hourly";
   compensationProfileId?: string;
+  // Empty string unassigns the staff member from their client.
+  clientId?: string;
   employmentType?: "full-time" | "part-time" | "contract";
   status?: "active" | "on_leave" | "terminated";
   notes?: string;

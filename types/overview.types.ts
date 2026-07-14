@@ -96,7 +96,7 @@ export interface WorkforceStats {
     terminated: number;
   };
   byEmploymentType: Record<string, number>;
-  byDepartment: { department: string; count: number }[];
+  byClient: { clientId: string | null; client: string; count: number }[];
   hires: { month: string; count: number }[];
   avgTenureMonths: number;
   updatedAt: string;

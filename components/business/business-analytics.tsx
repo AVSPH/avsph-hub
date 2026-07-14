@@ -19,7 +19,6 @@ import { useEodByBusiness } from "@/hooks/eod/useAdminEod";
 import type { Invoice, InvoiceStatus } from "@/types/invoice.types";
 import type { EodStatus } from "@/types/eod.types";
 import {
-  AttendanceCard,
   PayrollTrendCard,
   RecruitmentCard,
   WorkforceCard,
@@ -581,21 +580,15 @@ function SectionLabel({
 export function BusinessAnalytics({ businessId }: { businessId: string }) {
   return (
     <div className="space-y-8">
-      {/* Operations: dense metric cards packed into a rectangle. Cards stretch to
-          fill their cell (no items-start), so short cards match their row's height
-          instead of leaving a gap. */}
+      {/* Operations: bento layout. Cards stretch to fill their cell (no
+          items-start), so short cards match their row's height instead of
+          leaving a gap. */}
       <section className="space-y-4">
         <SectionLabel icon={CalendarDays}>Operations Analytics</SectionLabel>
 
-        {/* Band 1 — three tall cards, equal height */}
-        <div className="grid gap-4 lg:grid-cols-3">
-          <PayrollCard businessId={businessId} />
-          <AttendanceCard businessId={businessId} />
-          <RecruitmentCard businessId={businessId} />
-        </div>
-
-        {/* Band 2 — wide Workforce (2/3) beside a stacked pair (1/3) that fills the
-            same height: compact EOD status on top, weekly activity flexing below. */}
+        {/* Band 1 — wide Workforce anchor (2/3) beside a stacked EOD pair (1/3)
+            that fills the same height: compact status on top, weekly activity
+            flexing below. */}
         <div className="grid gap-4 lg:grid-cols-3">
           <div className="lg:col-span-2">
             <WorkforceCard businessId={businessId} />
@@ -604,6 +597,12 @@ export function BusinessAnalytics({ businessId }: { businessId: string }) {
             <EodStatusCard businessId={businessId} />
             <EodActivityCard businessId={businessId} className="flex-1" />
           </div>
+        </div>
+
+        {/* Band 2 — payroll + recruitment side by side, equal height */}
+        <div className="grid gap-4 lg:grid-cols-2">
+          <PayrollCard businessId={businessId} />
+          <RecruitmentCard businessId={businessId} />
         </div>
       </section>
 
