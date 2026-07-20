@@ -99,3 +99,60 @@ export interface WeeklyReportQuery {
   from?: string;
   to?: string;
 }
+
+// ── Analytics (all-time / range) ──────────────────────────────────────────
+export interface AnalyticsQuery {
+  from?: string;
+  to?: string;
+}
+
+export interface ClientAnalyticsTotals {
+  staffCount: number;
+  totalHours: number;
+  totalRevenueUsd: number;
+  totalPaidUsd: number | null;
+  totalMarginUsd: number | null;
+  vaSharePct: number | null;
+  marginPct: number | null;
+  missingBillRateCount: number;
+}
+
+export interface ClientAnalytics {
+  clientId: string;
+  from: string | null;
+  to: string | null;
+  usdConversionAvailable: boolean;
+  totals: ClientAnalyticsTotals;
+}
+
+export interface BusinessClientAnalyticsRow {
+  clientId: string;
+  name: string;
+  companyName: string | null;
+  staffCount: number;
+  totalHours: number;
+  revenueUsd: number;
+  paidUsd: number | null;
+  marginUsd: number | null;
+}
+
+export interface BusinessClientAnalytics {
+  businessId: string;
+  from: string | null;
+  to: string | null;
+  usdConversionAvailable: boolean;
+  usdRate: number | null;
+  totals: {
+    clientCount: number;
+    activeClientCount: number;
+    staffCount: number;
+    totalHours: number;
+    totalRevenueUsd: number;
+    totalPaidUsd: number | null;
+    totalMarginUsd: number | null;
+    vaSharePct: number | null;
+    marginPct: number | null;
+    missingBillRateCount: number;
+  };
+  clients: BusinessClientAnalyticsRow[];
+}

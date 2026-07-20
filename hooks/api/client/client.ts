@@ -7,8 +7,19 @@ import type {
   DeleteClientResponse,
   WeeklyReport,
   WeeklyReportQuery,
+  AnalyticsQuery,
+  ClientAnalytics,
+  BusinessClientAnalytics,
 } from "@/types/client.types";
 import type { Staff } from "@/types/staff.types";
+
+const analyticsQueryString = (q?: AnalyticsQuery): string => {
+  const params = new URLSearchParams();
+  if (q?.from) params.append("from", q.from);
+  if (q?.to) params.append("to", q.to);
+  const s = params.toString();
+  return s ? `?${s}` : "";
+};
 
 export const getClients = async (
   query: ClientListQuery,
@@ -56,6 +67,26 @@ export const deleteClient = async (
 
 export const getClientStaff = async (id: string): Promise<Staff[]> => {
   const response = await api.get<Staff[]>(`/clients/${id}/staff`);
+  return response.data;
+};
+
+export const getBusinessClientAnalytics = async (
+  businessId: string,
+  query?: AnalyticsQuery,
+): Promise<BusinessClientAnalytics> => {
+  const response = await api.get<BusinessClientAnalytics>(
+    `/businesses/${businessId}/clients/analytics${analyticsQueryString(query)}`,
+  );
+  return response.data;
+};
+
+export const getClientAnalytics = async (
+  id: string,
+  query?: AnalyticsQuery,
+): Promise<ClientAnalytics> => {
+  const response = await api.get<ClientAnalytics>(
+    `/clients/${id}/analytics${analyticsQueryString(query)}`,
+  );
   return response.data;
 };
 

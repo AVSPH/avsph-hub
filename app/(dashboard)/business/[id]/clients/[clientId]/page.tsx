@@ -32,8 +32,15 @@ import {
   useClientById,
   useClientStaff,
   useClientWeeklyReport,
+  useClientAnalytics,
   useDeleteClient,
 } from "@/hooks/useClient";
+import {
+  DollarSign,
+  HandCoins,
+  TrendingUp,
+} from "lucide-react";
+import { MetricCard, usd } from "@/components/client/metric-card";
 import { useUpdateStaff } from "@/hooks/useStaff";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -135,6 +142,10 @@ export default function ClientDetailPage() {
   );
 
   const { data: client, isLoading: isClientLoading } = useClientById(clientId);
+  // All-time analytics for this client (no window).
+  const { data: allTime, isLoading: isAllTimeLoading } =
+    useClientAnalytics(clientId);
+  const at = allTime?.totals;
   // Roster is still fetched so the table has data (and an accurate count)
   // before/independently of the period report resolving.
   const { data: assignedStaff } = useClientStaff(clientId);
@@ -353,6 +364,57 @@ export default function ClientDetailPage() {
           </AlertDialog>
         </div>
       </div>
+
+      {/* All-time analytics */}
+      <div className="space-y-3">
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          All time
+        </p>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <MetricCard
+            icon={DollarSign}
+            label="Revenue"
+            value={at ? usd(at.totalRevenueUsd) : "—"}
+            sub="billed to client"
+            loading={isAllTimeLoading}
+          />
+          <MetricCard
+            icon={HandCoins}
+            label="Paid to VAs"
+            value={at && at.totalPaidUsd != null ? usd(at.totalPaidUsd) : "—"}
+            sub={
+              at && at.vaSharePct != null
+                ? `${at.vaSharePct}% of revenue`
+                : "needs USD rate"
+            }
+            loading={isAllTimeLoading}
+          />
+          <MetricCard
+            icon={TrendingUp}
+            label="Margin"
+            value={at && at.totalMarginUsd != null ? usd(at.totalMarginUsd) : "—"}
+            sub={
+              at && at.marginPct != null
+                ? `${at.marginPct}% agency cut`
+                : "needs USD rate"
+            }
+            accent="success"
+            loading={isAllTimeLoading}
+          />
+          <MetricCard
+            icon={Clock}
+            label="Total Hours"
+            value={(at?.totalHours ?? 0).toLocaleString()}
+            sub="approved EOD"
+            loading={isAllTimeLoading}
+          />
+        </div>
+      </div>
+
+      {/* Period selector */}
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground print:hidden">
+        Selected period
+      </p>
 
       {/* Period bar */}
       <div className="flex flex-wrap items-center gap-2 print:hidden">

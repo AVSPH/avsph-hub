@@ -10,6 +10,7 @@ import {
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
+import { type DateRange } from "react-day-picker";
 import {
   Building2,
   Plus,
@@ -19,13 +20,20 @@ import {
   X,
   BarChart3,
   Settings2,
+  Users,
+  DollarSign,
+  Clock,
+  HandCoins,
+  TrendingUp,
 } from "lucide-react";
 import { useBusinessById } from "@/hooks/useBusiness";
-import { useClients } from "@/hooks/useClient";
+import { useClients, useBusinessClientAnalytics } from "@/hooks/useClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { RefreshButton } from "@/components/ui/refresh-button";
+import { DatePickerWithRange } from "@/components/ui/date-range-picker";
+import { MetricCard, usd } from "@/components/client/metric-card";
 import {
   Select,
   SelectContent,
@@ -52,6 +60,14 @@ import {
 import { CreateClientDialog } from "@/components/create-client-dialog";
 import type { Client } from "@/types/client.types";
 
+/** ISO date (YYYY-MM-DD) from a Date using local Y/M/D. */
+function isoOf(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
 export default function ClientsPage() {
   const params = useParams();
   const router = useRouter();
@@ -62,6 +78,8 @@ export default function ClientsPage() {
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  // Analytics window: undefined = all-time.
+  const [analyticsRange, setAnalyticsRange] = useState<DateRange | undefined>();
 
   const { data: business } = useBusinessById(businessId);
   const {
@@ -70,6 +88,17 @@ export default function ClientsPage() {
     refetch,
     isFetching,
   } = useClients({ businessId });
+
+  const analyticsQuery = useMemo(
+    () =>
+      analyticsRange?.from && analyticsRange?.to
+        ? { from: isoOf(analyticsRange.from), to: isoOf(analyticsRange.to) }
+        : undefined,
+    [analyticsRange],
+  );
+  const { data: analytics, isLoading: isAnalyticsLoading } =
+    useBusinessClientAnalytics(businessId, analyticsQuery);
+  const a = analytics?.totals;
 
   const openEdit = React.useCallback((client: Client) => {
     setSelectedClient(client);
@@ -237,6 +266,87 @@ export default function ClientsPage() {
             <Plus className="h-4 w-4" />
             Add Client
           </Button>
+        </div>
+      </div>
+
+      {/* Analytics */}
+      <div className="space-y-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            {analyticsQuery ? "Selected period" : "All time"}
+          </span>
+          <DatePickerWithRange
+            value={analyticsRange}
+            onChange={setAnalyticsRange}
+            numberOfMonths={2}
+            placeholder="All time"
+            className="h-8"
+          />
+          {analyticsRange && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8"
+              onClick={() => setAnalyticsRange(undefined)}
+            >
+              All time
+              <X className="ml-1.5 h-3.5 w-3.5" />
+            </Button>
+          )}
+          {analytics && !analytics.usdConversionAvailable && (
+            <span className="text-xs text-amber-600 dark:text-amber-400">
+              No USD rate set — revenue shown, cost/margin need a USD → PHP rate.
+            </span>
+          )}
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          <MetricCard
+            icon={Building2}
+            label="Clients"
+            value={String(a?.clientCount ?? 0)}
+            sub={
+              a ? `${a.activeClientCount} with staff · ${a.staffCount} VAs` : undefined
+            }
+            loading={isAnalyticsLoading}
+          />
+          <MetricCard
+            icon={DollarSign}
+            label="Total Revenue"
+            value={a ? usd(a.totalRevenueUsd) : "—"}
+            sub="billed to clients"
+            loading={isAnalyticsLoading}
+          />
+          <MetricCard
+            icon={Clock}
+            label="Total Hours"
+            value={(a?.totalHours ?? 0).toLocaleString()}
+            sub="approved EOD"
+            loading={isAnalyticsLoading}
+          />
+          <MetricCard
+            icon={HandCoins}
+            label="Paid to VAs"
+            value={a && a.totalPaidUsd != null ? usd(a.totalPaidUsd) : "—"}
+            sub={
+              a && a.vaSharePct != null
+                ? `${a.vaSharePct}% of revenue`
+                : "needs USD rate"
+            }
+            loading={isAnalyticsLoading}
+          />
+          <MetricCard
+            icon={TrendingUp}
+            label="Margin"
+            value={a && a.totalMarginUsd != null ? usd(a.totalMarginUsd) : "—"}
+            sub={
+              a && a.marginPct != null
+                ? `${a.marginPct}% agency cut`
+                : "needs USD rate"
+            }
+            accent="success"
+            loading={isAnalyticsLoading}
+          />
         </div>
       </div>
 

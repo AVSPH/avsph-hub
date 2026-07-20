@@ -9,6 +9,8 @@ import {
   deleteClient,
   getClientStaff,
   getClientWeeklyReport,
+  getBusinessClientAnalytics,
+  getClientAnalytics,
 } from "@/hooks/api/client/client";
 import { updateStaff } from "@/hooks/api/staff/staff-management";
 import type {
@@ -16,6 +18,7 @@ import type {
   CreateClientRequest,
   UpdateClientRequest,
   WeeklyReportQuery,
+  AnalyticsQuery,
 } from "@/types/client.types";
 
 interface ApiError {
@@ -60,6 +63,27 @@ export const useClientWeeklyReport = (
   return useQuery({
     queryKey: ["clients", "weekly-report", id, range?.from, range?.to],
     queryFn: () => getClientWeeklyReport(id, range),
+    enabled: !!id,
+    staleTime: 60 * 1000,
+  });
+};
+
+export const useBusinessClientAnalytics = (
+  businessId: string,
+  query?: AnalyticsQuery,
+) => {
+  return useQuery({
+    queryKey: ["clients", "analytics", "business", businessId, query?.from, query?.to],
+    queryFn: () => getBusinessClientAnalytics(businessId, query),
+    enabled: !!businessId,
+    staleTime: 60 * 1000,
+  });
+};
+
+export const useClientAnalytics = (id: string, query?: AnalyticsQuery) => {
+  return useQuery({
+    queryKey: ["clients", "analytics", "client", id, query?.from, query?.to],
+    queryFn: () => getClientAnalytics(id, query),
     enabled: !!id,
     staleTime: 60 * 1000,
   });
